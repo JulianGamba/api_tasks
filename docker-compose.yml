@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_activity_1
+    environment:
+      POSTGRES_DB: activity_1
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+    networks:
+      - activity_1_network
+  web:
+    image: activity_1_app:1
+    container_name: activity_1_app
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - activity_1_network
+
+networks:
+  activity_1_network:
+    driver: bridge
