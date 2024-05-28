@@ -21,7 +21,7 @@ class Task(models.Model):
     deadline = models.DateField(verbose_name='Fecha de la tarea')
     comment = models.CharField(max_length=255, verbose_name='Comentarios de la tarea', blank=True, null=True)
     owner = models.ForeignKey(User, related_name='tasks', on_delete=models.CASCADE, verbose_name='Dueño de la tarea')
-    assigned_users = models.ManyToManyField(User, related_name='assigned_tasks', on_delete=models.CASCADE, verbose_name='usuario asignado')
+    assigned_users = models.ManyToManyField(User, related_name='assigned_tasks', verbose_name='usuario asignado')
 
     def __str__(self):
         return f"tarea: {self.name} en estado {self.state}"
