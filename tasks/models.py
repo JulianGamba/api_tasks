@@ -3,20 +3,18 @@ from django.contrib.auth.models import User
 
 class Task(models.Model):
 
+    BACKLOG = 'BACKLOG'
     TO_DO = 'TO DO'
     DOING = 'DOING'
+    TEST = 'TEST'
     DONE = 'DONE'
-    BACKLOG = 'BACKLOG'
-    USER_TEST = 'USER TEST'
-    TESTING = 'TESTING'
 
     STATE_CHOICES = [
+        (BACKLOG, 'Backlog'),
         (TO_DO, 'To do'),
         (DOING, 'Doing'),
+        (TEST, 'Test'),
         (DONE, 'Done'),
-        (BACKLOG, 'Backlog'),
-        (USER_TEST, 'User test'),
-        (TESTING, 'Testing')
     ]
 
     name = models.CharField(max_length=40, verbose_name='Nombre de la tarea')
