@@ -18,10 +18,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email']
 
 class TaskSerializer(serializers.ModelSerializer):
-    state = StateSerializer()
-    priority = PrioritySerializer()
-    owner = UserSerializer()
-    assigned_users = UserSerializer(many=True)
+    state = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
+    priority = serializers.PrimaryKeyRelatedField(queryset=Priority.objects.all())
+    owner = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    assigned_users = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
 
     class Meta:
         model = Task
