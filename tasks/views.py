@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import State, Priority, Task
-from .serializers import StateSerializer, PrioritySerializer, TaskSerializer, UserSerializer
+from .serializers import StateSerializer, PrioritySerializer, TaskReadSerializer, UserSerializer, TaskWriteSerializer
 from django.contrib.auth.models import User
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -17,4 +17,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
-    serializer_class = TaskSerializer
+
+    def get_serializer_class(self):
+        if self.action in ['list', 'retrieve']:
+            return TaskReadSerializer
+        return TaskWriteSerializer

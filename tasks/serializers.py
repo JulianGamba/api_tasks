@@ -17,7 +17,18 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'username', 'email']
 
-class TaskSerializer(serializers.ModelSerializer):
+class TaskReadSerializer(serializers.ModelSerializer):
+    state = StateSerializer()
+    priority = PrioritySerializer()
+    owner = UserSerializer()
+    assigned_users = UserSerializer(many=True)
+
+    class Meta:
+        model = Task
+        fields = '__all__'
+
+# Serializador para la escritura
+class TaskWriteSerializer(serializers.ModelSerializer):
     state = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
     priority = serializers.PrimaryKeyRelatedField(queryset=Priority.objects.all())
     owner = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
