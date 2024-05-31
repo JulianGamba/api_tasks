@@ -1,7 +1,9 @@
 from rest_framework import viewsets
 from .models import State, Priority, Task
 from .serializers import StateSerializer, PrioritySerializer, TaskReadSerializer, UserSerializer, TaskWriteSerializer
+from .filters import TaskFilter
 from django.contrib.auth.models import User
+from django_filters.rest_framework import DjangoFilterBackend
 
 class StateViewSet(viewsets.ModelViewSet):
     queryset = State.objects.all()
@@ -17,7 +19,8 @@ class UserViewSet(viewsets.ModelViewSet):
 
 class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
-
+    filterset_class = TaskFilter
+ 
     def get_serializer_class(self):
         if self.action in ['list', 'retrieve']:
             return TaskReadSerializer
