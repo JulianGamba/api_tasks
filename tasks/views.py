@@ -29,3 +29,4 @@ class TaskViewSet(viewsets.ModelViewSet):
 class CustomUserListCreateAPIView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    
