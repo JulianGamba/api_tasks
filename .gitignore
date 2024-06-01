@@ -1,3 +1,102 @@
 env/
 *.sqlite3
 __pycache__/
+
+# Ignorar todos los archivos y directorios listados
+
+# Archivos y directorios específicos
+/.anaconda/
+/.bash_history
+/.cache/
+/.conda/
+/.condarc
+/.config/
+/.configprops/
+/.continuum/
+/.datastorage/
+/.docker/
+/.gfclient/
+/.gitconfig
+/.lesshst
+/.m2/
+/.nbi/
+/.node_repl_history
+/.viminfo
+/.vscode/
+/3D Objects/
+/AppData/
+/BiciMotos-app/
+/Contacts/
+/Documents/
+/Downloads/
+/Favorites/
+/IntelGraphicsProfiles/
+/Links/
+/Music/
+/NTUSER.DAT
+/NTUSER.DAT{a2332f18-cdbf-11ec-8680-002248483d79}.TM.blf
+/NTUSER.DAT{a2332f18-cdbf-11ec-8680-002248483d79}.TMContainer00000000000000000001.regtrans-ms
+/NTUSER.DAT{a2332f18-cdbf-11ec-8680-002248483d79}.TMContainer00000000000000000002.regtrans-ms
+/OneDrive - SENA/
+/.849C9593-D756-4E56-8D6E-42412F2A707B
+/Documentos/
+/BASE DE DATOS EVALUACION FINAL.mwb
+/C-D.lnk
+/Counter Strike 1.6 No Steam.lnk
+/CrystalDiskInfo.lnk
+/Dinamica de trabajo git hud.txt
+/Docker Desktop.lnk
+/Documentos Tic Social/
+/Factura/
+/Libreria Railway/
+/Perfil 1 - Brave.lnk
+/Postman.lnk
+/Proyecto/
+/Servidor Dedicado.lnk
+/Sourcetree.lnk
+/Speed.exe - Acceso directo.lnk
+/Tutorial Django-REST/
+/Typo in class constructor.lnk
+/VirtualDJ.lnk
+/WordReference.lnk
+/YouTube.lnk
+/base de datos proyecto laravel/
+/curso Django/
+/desktop.ini
+/django_project/
+/ejemplo Django/
+/ejemplo Docker/
+/ejercicio-persona/
+/elemplo/
+/miApp/
+/miPrimerProyectoPython/
+/proyecto Citricos.docx
+/proyecto Django/
+/taller Django/
+/taller resuelto metricas calidad .docx
+/xampp-control-LAPTOP-VQL2OFUQ.log
+/xampp-control.exe
+/xampp-control.exe - Acceso directo-LAPTOP-VQL2OFUQ.lnk
+/xampp-control.exe - Acceso directo.lnk
+/xampp-control.ini
+/xampp-control.log
+/~$oyecto Citricos.docx
+/Imágenes/
+/Introducción a OneDrive.pdf
+/biciMotos/
+/desktop.ini
+/Saved Games/
+/Searches/
+/Videos/
+/anaconda3/
+/composer.json
+/composer.lock
+/et --hard HEAD@{17}
+/example-app/
+/mercurial.ini
+/ntuser.dat.LOG1
+/ntuser.dat.LOG2
+/ntuser.ini
+/repositorios/
+/vendor/
+/vides/
