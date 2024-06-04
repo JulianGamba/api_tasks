@@ -91,7 +91,7 @@ DATABASES = {
         'HOST': 'db', # se cambio de db a localhost para correr el proyecto de manera local
         'USER': 'root',
         'PASSWORD': '1234',
-        'PORT': '5433',
+        'PORT': '5432',
     }
 }
 
