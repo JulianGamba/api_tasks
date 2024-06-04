@@ -20,8 +20,8 @@ class PriorityViewSet(viewsets.ModelViewSet):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+    queryset =  CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
 
 
 class TaskViewSet(viewsets.ModelViewSet):
