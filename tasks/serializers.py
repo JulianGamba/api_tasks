@@ -27,8 +27,8 @@ class UserSerializer(serializers.ModelSerializer):
 class TaskSerializer(serializers.ModelSerializer):
     state = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
     priority = serializers.PrimaryKeyRelatedField(queryset=Priority.objects.all())
-    owner = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    assigned_users = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
+    owner = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
+    assigned_users = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
 
     class Meta:
         model = Task
