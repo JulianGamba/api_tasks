@@ -1,11 +1,15 @@
 from rest_framework import viewsets
 from .models import State, Priority, Task
 from .serializers import StateSerializer, PrioritySerializer, TaskReadSerializer, UserSerializer, TaskWriteSerializer
-from .filters import TaskFilter
 from django.contrib.auth.models import User
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAuthenticatedOrReadOnly
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from .filters import TaskFilter
+
 
 class StateViewSet(viewsets.ModelViewSet):
     queryset = State.objects.all()
@@ -36,3 +40,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+
+# @api_view(['GET', 'POST'])
+# def task_list_create(request):
+#     if request.method == 'GET':
+#         tasks = Task.objects.all()
