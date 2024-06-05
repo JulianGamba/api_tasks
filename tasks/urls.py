@@ -1,14 +1,22 @@
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from . import views
-
-router = DefaultRouter()
-router.register(r'states', views.StateViewSet, basename='state')
-router.register(r'prioritys', views.PriorityViewSet, basename='priority')
-router.register(r'users', views.UserViewSet, basename='user')
-router.register(r'tasks', views.TaskViewSet, basename='task')
-
+from tasks.views import *
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('states/', StateViewSet.as_view({'get': 'list', 'post': 'create'}), name='state-list'),
+    path('states/<int:pk>/', StateViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='state-detail'),
+    path('priorities/', PriorityViewSet.as_view({'get': 'list', 'post': 'create'}), name='priority-list'),
+    path('priorities/<int:pk>/', PriorityViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='priority-detail'),
+    path('users/', CustomUserViewSet.as_view({'get': 'list', 'post': 'create'}), name='customuser-list'),
+    path('users/<int:pk>/', CustomUserViewSet.as_view({'get': 'retrieve', 'put': 'update', 'delete': 'destroy'}), name='customuser-detail'),
+    path('tasks/', task_list_create, name='task-list-create'),
+    path('tasks/<int:pk>/', tasks_detail, name='task-detail'),
+    path('tasks/by_state/', task_by_state_list, name='task-by-state-list'),
+    path('tasks/by_priority/', task_by_priority_list, name='task-by-priority-list'),
+    path('tasks/by_deadline/', task_by_deadline, name='task-by-deadline-list'),
 ]
