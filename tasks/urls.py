@@ -1,7 +1,7 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
-from .views import task_list_create, tasks_detail
+from .views import task_list_create, tasks_detail, task_by_state_list
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -19,4 +19,8 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('tasks/', task_list_create, name='task-list-create'),
     path('tasks/<int:pk>/', tasks_detail, name='task-detail'),
+    path('tasks/by_state/', task_by_state_list, name='tasks-by-state-list'),
 ]
+
+
+#     path('user/tasks/', user_task_list, name='user-task-list'),

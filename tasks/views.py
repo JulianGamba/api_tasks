@@ -59,3 +59,29 @@ def tasks_detail(request, pk, format=None):
     elif request.method == 'DELETE':
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+@api_view(['GET'])
+def task_by_state_list(request):
+    state_param = request.GET.get('state')
+    if state_param:
+        try:
+            state = State.objects.get(pk=state_param)
+        except (State.DoesNotExist, ValueError):
+            try:
+                state = State.objects.get(name__iexact=state_param)
+            except State.DoesNotExist:
+                return Response({'error': 'Estado no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        tasks = Task.objects.filter(state=state)
+    else:
+        tasks = Task.objects.all()
+    
+    serializer = TaskReadSerializer(tasks, many=True)
+    return Response(serializer.data)
+    
+# @api_view(['GET'])
+# def user_task_list(request):
+#     if request.method == 'GET':
+#         user = request.user
+#         tasks = Task.objects.filter(owner=user)
+#         serializer = TaskSerializer(tasks, many=True)
+#         return Response(serializer.data)
