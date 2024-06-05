@@ -31,8 +31,8 @@ class Task(models.Model):
     priority = models.ForeignKey(Priority, on_delete=models.CASCADE, verbose_name='Prioridad de la tarea')
     deadline = models.DateField(verbose_name='Fecha de la tarea')
     comment = models.CharField(max_length=255, verbose_name='Comentarios de la tarea', blank=True, null=True)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='dueño tarea')
-    assigned_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='usuario a desarrollar la tarea')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tasks_owned', verbose_name='Dueño tarea')
+    assigned_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='tasks_assigned', verbose_name='usuario asignado ')
 
     def __str__(self):
         return f"tarea: {self.name} en estado {self.state}"
