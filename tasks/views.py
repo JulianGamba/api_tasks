@@ -96,6 +96,28 @@ def task_by_priority_list(request):
     
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def task_by_deadline(request):
+    deadline_param = request.GET.get('deadline')
+    filter_type = request.GET.get('filter', 'exact')
+    if deadline_param:
+        try:
+            if filter_type == 'before':
+                tasks = Task.objects.filter(deadline__lt=deadline_param)
+            elif filter_type == 'after':
+                tasks = Task.objects.filter(deadline__gt=deadline_param)
+            else:
+                tasks = Task.objects.filter(deadline=deadline_param)
+
+        except ValueError:
+            return Response({'error': 'No hay tarea con la fecha proporcionada'}, status=status.HTTP_404_NOT_FOUND)
+    else: 
+        tasks = Task.objects.all()
+        
+    serializer = TaskReadSerializer(tasks, many=True)
+    return Response(serializer.data)
     
 # @api_view(['GET'])
 # def user_task_list(request):
