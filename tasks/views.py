@@ -3,12 +3,9 @@ from .models import State, Priority, Task
 from .serializers import StateSerializer, PrioritySerializer, TaskReadSerializer, UserSerializer, TaskWriteSerializer
 from django.contrib.auth.models import User
 from .permissions import IsAuthenticatedOrReadOnly
-from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from django_filters.rest_framework import DjangoFilterBackend
-from .filters import TaskFilter
 
 class StateViewSet(viewsets.ModelViewSet):
     queryset = State.objects.all()
@@ -26,6 +23,7 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def task_list_create(request):
     if request.method == 'GET':
         tasks = Task.objects.all()
@@ -39,6 +37,7 @@ def task_list_create(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def tasks_detail(request, pk, format=None):
     try:
         task = Task.objects.get(pk=pk)
@@ -61,6 +60,7 @@ def tasks_detail(request, pk, format=None):
         return Response(status=status.HTTP_204_NO_CONTENT)
     
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_state_list(request):
     state_param = request.GET.get('state')
     if state_param:
@@ -79,6 +79,7 @@ def task_by_state_list(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_priority_list(request):
     priority_param = request.GET.get('priority')
     if priority_param:
