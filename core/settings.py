@@ -41,10 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
-    'tasks',
+    'WorkStream.app.WorkStreamConfig',
     'django_filters',
 ]
-AUTH_USER_MODEL = 'tasks.CustomUser'  
+AUTH_USER_MODEL = 'WorkStream.CustomUser'  
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

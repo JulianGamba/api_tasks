@@ -1,5 +1,5 @@
 from django.urls import path, include
-from tasks.views import *
+from WorkStream.views import *
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
