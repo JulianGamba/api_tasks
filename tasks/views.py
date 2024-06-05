@@ -77,6 +77,24 @@ def task_by_state_list(request):
     
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+def task_by_priority_list(request):
+    priority_param = request.GET.get('priority')
+    if priority_param:
+        try:
+            priority = Priority.objects.get(pk=priority_param)
+        except(Priority.DoesNotExist, ValueError):
+            try:
+                priority = Priority.objects.get(name__iexact=priority_param)
+            except Priority.DoesNotExist:
+                return Response({'error': 'Prioridad no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+        tasks = Task.objects.filter(priority=priority)
+    else:
+        tasks = Task.objects.all()
+    
+    serializer = TaskReadSerializer(tasks, many=True)
+    return Response(serializer.data)
     
 # @api_view(['GET'])
 # def user_task_list(request):
