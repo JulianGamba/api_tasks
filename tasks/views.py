@@ -6,7 +6,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from .models import State, Priority, Task, CustomUser
-from .serializers import StateSerializer, PrioritySerializer, TaskSerializer, UserSerializer, CustomUserSerializer, LoginSerializer
+from .serializers import (StateSerializer, PrioritySerializer,
+TaskSerializer, UserSerializer, CustomUserSerializer, LoginSerializer)
 
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -35,6 +36,7 @@ class RegisterAPIView(generics.CreateAPIView):
 
 
 class LoginAPIView(APIView):
+    
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
