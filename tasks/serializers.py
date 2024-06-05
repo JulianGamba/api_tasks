@@ -31,9 +31,13 @@ class TaskReadSerializer(serializers.ModelSerializer):
 class TaskWriteSerializer(serializers.ModelSerializer):
     state = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
     priority = serializers.PrimaryKeyRelatedField(queryset=Priority.objects.all())
-    owner = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     assigned_users = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True)
 
     class Meta:
         model = Task
-        fields = '__all__'
+        exclude = ['owner']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        validated_data['owner'] = user
+        return super().create(validated_data)
