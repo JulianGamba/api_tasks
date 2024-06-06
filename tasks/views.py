@@ -6,6 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import State, Priority, Task, CustomUser
 from .serializers import StateSerializer, PrioritySerializer, TaskReadSerializer, TaskWriteSerializer, LoginSerializer, CustomUserSerializer
 from .permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -23,15 +24,18 @@ class PriorityViewSet(viewsets.ModelViewSet):
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset =  CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    #permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class RegisterAPIView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = [AllowAny]
 
 
 class LoginAPIView(APIView):
+    permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
