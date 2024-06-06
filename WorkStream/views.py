@@ -1,38 +1,54 @@
-from rest_framework import viewsets
-from rest_framework import generics, status
+from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import State, Priority, Task, CustomUser
-from .serializers import StateSerializer, PrioritySerializer, TaskReadSerializer, TaskWriteSerializer, LoginSerializer, CustomUserSerializer
+from .models.customUser import CustomUser
+from .models.state import State
+from .models.priority import Priority
+from .models.tasks import Task
+from .serializers import (
+    StateSerializer,
+    PrioritySerializer,
+    TaskReadSerializer,
+    TaskWriteSerializer,
+    LoginSerializer,
+    CustomUserSerializer
+)
 from .permissions import IsAuthenticatedOrReadOnly
 from rest_framework.decorators import api_view, permission_classes
 
+
 class StateViewSet(viewsets.ModelViewSet):
+    
     queryset = State.objects.all()
     serializer_class = StateSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class PriorityViewSet(viewsets.ModelViewSet):
+    
     queryset = Priority.objects.all()
     serializer_class = PrioritySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
+    
     queryset =  CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class RegisterAPIView(generics.CreateAPIView):
+    
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
 
 
 class LoginAPIView(APIView):
+    
     def post(self, request):
+        
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
@@ -47,6 +63,7 @@ class LoginAPIView(APIView):
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def task_list_create(request):
+    
     if request.method == 'GET':
         tasks = Task.objects.all()
         serializer = TaskReadSerializer(tasks, many=True)
@@ -61,6 +78,7 @@ def task_list_create(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def tasks_detail(request, pk, format=None):
+    
     try:
         task = Task.objects.get(pk=pk)
     except Task.DoesNotExist:
@@ -84,6 +102,7 @@ def tasks_detail(request, pk, format=None):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_state_list(request):
+    
     state_param = request.GET.get('state')
     if state_param:
         try:
@@ -103,6 +122,7 @@ def task_by_state_list(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_priority_list(request):
+    
     priority_param = request.GET.get('priority')
     if priority_param:
         try:
@@ -122,6 +142,7 @@ def task_by_priority_list(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_deadline(request):
+    
     deadline_param = request.GET.get('deadline')
     filter_type = request.GET.get('filter', 'exact')
     if deadline_param:
