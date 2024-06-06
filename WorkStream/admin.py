@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .models import Task, Priority, State
+from .models.state import State
 from .models.customUser import CustomUser
+from .models.tasks import Task
+from .models.priority import Priority
 
 
 admin.site.register(Task)
