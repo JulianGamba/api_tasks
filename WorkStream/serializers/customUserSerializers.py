@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import CustomUser
+from WorkStream.models.customUser import CustomUser 
 
 
 class CustomUserSerializer(serializers.ModelSerializer):

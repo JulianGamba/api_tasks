@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from models import State
+from WorkStream.models.state import State
 
 class StateSerializer(serializers.ModelSerializer):
     class Meta:

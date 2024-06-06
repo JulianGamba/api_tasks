@@ -41,7 +41,7 @@ class RegisterAPIView(generics.CreateAPIView):
     
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-
+ 
 
 class LoginAPIView(APIView):
     

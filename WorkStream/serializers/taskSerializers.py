@@ -1,8 +1,13 @@
 
 from rest_framework import serializers
-from models import (TaskRead, TaskWrite, StateSerializer, 
-PrioritySerializer, CustomUserSerializer)
-from models import Task, Priority, State, CustomUser
+from WorkStream.models.tasks import Task
+from WorkStream.models.customUser import CustomUser
+from WorkStream.models.state import State
+from WorkStream.models.priority import Priority
+from WorkStream.serializers.customUserSerializers import CustomUserSerializer
+from .loginSerializers import LoginSerializer
+from WorkStream.serializers.prioritySerializers import PrioritySerializer
+from WorkStream.serializers.stateSerializers import StateSerializer
 
 
 
