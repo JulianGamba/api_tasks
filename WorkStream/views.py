@@ -6,14 +6,12 @@ from .models.customUser import CustomUser
 from .models.state import State
 from .models.priority import Priority
 from .models.tasks import Task
-from .serializers import (
-    StateSerializer,
-    PrioritySerializer,
-    TaskReadSerializer,
-    TaskWriteSerializer,
-    LoginSerializer,
-    CustomUserSerializer
-)
+from .serializers.customUserSerializers import CustomUserSerializer
+from .serializers.loginSerializers import LoginSerializer
+from .serializers.taskSerializers import TaskReadSerializer, TaskWriteSerializer
+from .serializers.prioritySerializers import PrioritySerializer
+from .serializers.stateSerializers import StateSerializer
+
 from .permissions import IsAuthenticatedOrReadOnly
 from rest_framework.decorators import api_view, permission_classes
 
