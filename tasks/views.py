@@ -24,7 +24,7 @@ class PriorityViewSet(viewsets.ModelViewSet):
 class CustomUserViewSet(viewsets.ModelViewSet):
     queryset =  CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    #permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class RegisterAPIView(generics.CreateAPIView):
@@ -142,5 +142,24 @@ def task_by_deadline(request):
     else: 
         tasks = Task.objects.all()
         
+    serializer = TaskReadSerializer(tasks, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def task_by_owner(request):
+    owner_param = request.GET.get('owner')
+    if owner_param:
+        try:
+            owner = CustomUser.objects.get(pk=owner_param)
+        except (CustomUser.DoesNotExist, ValueError):
+            try:
+                owner = CustomUser.objects.get(username=owner_param)
+            except CustomUser.DoesNotExist:
+                return Response({'error': 'No hay tarea con ese dueño'}, status=status.HTTP_404_NOT_FOUND)
+        tasks = Task.objects.filter(owner=owner)
+    else:
+        tasks = Task.objects.all()
+    
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
