@@ -22,5 +22,5 @@ urlpatterns = [
     path('tasks/by_priority/', task_by_priority_list, name='task-by-priority-list'),
     path('tasks/by_deadline/', task_by_deadline, name='task-by-deadline-list'),
     path('tasks/by_owner/', task_by_owner, name='task-by-owner-list'),
-    
+    path('tasks/by_assigned_users/', task_by_assigned_users, name='task-by-assigned-users-list'),
 ]
