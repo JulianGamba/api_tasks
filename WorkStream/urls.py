@@ -19,4 +19,5 @@ urlpatterns = [
     path('tasks/by_state/', task_by_state_list, name='task-by-state-list'),
     path('tasks/by_priority/', task_by_priority_list, name='task-by-priority-list'),
     path('tasks/by_deadline/', task_by_deadline, name='task-by-deadline-list'),
+    path('api/register/', RegisterAPIView.as_view(), name='register_api'),
 ]
