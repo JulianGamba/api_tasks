@@ -14,7 +14,9 @@ from .serializers.prioritySerializers import PrioritySerializer
 from .serializers.stateSerializers import StateSerializer
 
 from .permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
+from django.db.models import Q
 
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -42,6 +44,7 @@ class RegisterAPIView(generics.CreateAPIView):
     
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
+    permission_classes = [AllowAny]
     
 
 class LoginAPIView(APIView):
@@ -158,5 +161,40 @@ def task_by_deadline(request):
     else: 
         tasks = Task.objects.all()
         
+    serializer = TaskReadSerializer(tasks, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def task_by_owner(request):
+    owner_param = request.GET.get('owner')
+    if owner_param:
+        try:
+            owner = CustomUser.objects.get(pk=owner_param)
+        except (CustomUser.DoesNotExist, ValueError):
+            try:
+                owner = CustomUser.objects.get(username=owner_param)
+            except CustomUser.DoesNotExist:
+                return Response({'error': 'No hay tarea con ese dueño'}, status=status.HTTP_404_NOT_FOUND)
+        tasks = Task.objects.filter(owner=owner)
+    else:
+        tasks = Task.objects.all()
+    
+    serializer = TaskReadSerializer(tasks, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticatedOrReadOnly])
+def task_by_assigned_users(request):
+    assigned_users_param = request.GET.get('assigned_users')
+    if assigned_users_param:
+        try:
+            assigned_users = CustomUser.objects.get(Q(pk=assigned_users_param) | Q(username=assigned_users_param))
+            tasks = Task.objects.filter(assigned_users=assigned_users)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'No hay un usuario asignado'}, status=status.HTTP_404_NOT_FOUND)
+    else:
+        tasks = Task.objects.all()
+
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
