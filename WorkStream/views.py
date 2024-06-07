@@ -2,6 +2,7 @@ from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.views import View
 from .models.customUser import CustomUser
 from .models.state import State
 from .models.priority import Priority
@@ -41,7 +42,7 @@ class RegisterAPIView(generics.CreateAPIView):
     
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
- 
+    
 
 class LoginAPIView(APIView):
     
