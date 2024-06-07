@@ -46,7 +46,8 @@ class RegisterAPIView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 class LoginAPIView(APIView):
-    
+    permission_classes = [AllowAny]
+
     def post(self, request):
         
         serializer = LoginSerializer(data=request.data)
@@ -69,7 +70,7 @@ def task_list_create(request):
         serializer = TaskReadSerializer(tasks, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
-        serializer = TaskWriteSerializer(data=request.data)
+        serializer = TaskWriteSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
