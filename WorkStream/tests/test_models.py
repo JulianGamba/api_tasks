@@ -18,6 +18,7 @@ class CustomUserModelTest(TestCase):
         user = CustomUser.objects.create(username="usuario1", password="password")
         self.assertEqual(user.username, "usuario1")
 
+
 class TaskModelTest(TestCase):
     def test_create_task(self):
         state = State.objects.create(name="Doing")
@@ -30,14 +31,16 @@ class TaskModelTest(TestCase):
             comment = "null",
             state = state,
             priority = priority,
-            assigned_users = user,
+            #assigned_users = user,
             owner = user
         )
+        task.assigned_users.set([user])
         self.assertEqual(task.name, "Test tarea 1")
         self.assertEqual(task.description, "Este es un test para la tarea 1")
         self.assertEqual(task.deadline, "2024-06-08")
         self.assertEqual(task.comment, "null")
         self.assertEqual(task.state, state)
         self.assertEqual(task.priority, priority)
-        self.assertEqual(task.assigned_users, user)
+        #self.assertEqual(task.assigned_users, user)
+        self.assertIn(user, task.assigned_users.all())
         self.assertEqual(task.owner, user)
