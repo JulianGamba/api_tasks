@@ -3,11 +3,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from WorkStream.models import Task, State, Priority, CustomUser
-from WorkStream.serializers.taskSerializers import (
-    TaskReadSerializer,
-    TaskWriteSerializer,
-    CustomUserSerializer
-)
+
 
 
 class ViewSetTests(TestCase):
@@ -74,10 +70,10 @@ class AuthViewsTest(TestCase):
         self.client = APIClient()
 
     def test_register(self):
-        url = reverse('register_api')
+        url = reverse('register')
         data = {
             'username': 'nuevo usuario',
-            'password': 'password1233',
+            'password': 'password1234',
             'email': 'test@gmail.com',
             'full_name': 'nuevo usuario registrado',
             'avatar': None,
