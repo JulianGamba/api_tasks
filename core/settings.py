@@ -154,8 +154,3 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
 }
-
-TESTS = [
-    'WorkStream.tests',  # Directorio de pruebas de la aplicación 'snippets'
-    # Añade más directorios de pruebas si es necesario
-]
