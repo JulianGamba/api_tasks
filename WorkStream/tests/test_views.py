@@ -3,11 +3,6 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from WorkStream.models import Task, State, Priority, CustomUser
-from WorkStream.serializers.taskSerializers import (
-    TaskReadSerializer,
-    TaskWriteSerializer,
-    CustomUserSerializer
-)
 
 
 class ViewSetTests(TestCase):
