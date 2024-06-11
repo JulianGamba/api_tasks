@@ -7,6 +7,7 @@ from WorkStream.serializers.stateSerializers import StateSerializer
 from WorkStream.serializers.prioritySerializers import PrioritySerializer
 from WorkStream.serializers.customUserSerializers import CustomUserSerializer
 from WorkStream.serializers.taskSerializers import TaskReadSerializer, TaskWriteSerializer
+from datetime import datetime
 
 class TaskSerializerTest(APITestCase):
 
@@ -22,7 +23,7 @@ class TaskSerializerTest(APITestCase):
             "comment": "null",
             "state": self.state.id,
             "priority": self.priority.id,
-            "assigned_users": [self.user.id],
+            "assigned_users": [self.user.id, self.another_user.id],
             "owner": self.user.id
         }
         self.task = Task.objects.create(
@@ -49,4 +50,18 @@ class TaskSerializerTest(APITestCase):
         self.assertEqual(len(data['assigned_users']), 2)
         self.assertEqual(data['owner']['id'], self.task.owner.id)
 
-    
+    def test_task_write_serialization(self):
+        request = self.factory.post('/tasks/', self.task_data, format='json')
+        request.user = self.user
+        serializer = TaskWriteSerializer(data=self.task_data, context={'request': request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        task = serializer.save()
+        self.assertEqual(task.name, self.task_data['name'])
+        self.assertEqual(task.description, self.task_data['description'])
+        task_deadline = datetime.strptime(self.task_data['deadline'], '%Y-%m-%d').date()
+        self.assertEqual(task.deadline, task_deadline)
+        self.assertEqual(task.comment, self.task_data['comment'])
+        self.assertEqual(task.state.id, self.task_data['state'])
+        self.assertEqual(task.priority.id, self.task_data['priority'])
+        self.assertEqual(list(task.assigned_users.all()), [self.user, self.another_user])
+        self.assertEqual(task.owner, self.user)
