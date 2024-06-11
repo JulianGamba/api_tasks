@@ -1,4 +1,4 @@
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIRequestFactory
 from WorkStream.models.tasks import Task
 from WorkStream.models.state import State
 from WorkStream.models.priority import Priority
@@ -14,6 +14,7 @@ class TaskSerializerTest(APITestCase):
         self.state = State.objects.create(name='Doing')
         self.priority = Priority.objects.create(name='Alta')
         self.user = CustomUser.objects.create_user(username='user_test', password='password')
+        self.another_user = CustomUser.objects.create_user(username='anotheruser', password='password')
         self.task_data = {
             "name": "Test tarea 1",
             "description": "Este es el test de la tarea 1",
@@ -33,7 +34,19 @@ class TaskSerializerTest(APITestCase):
             priority=self.priority,
             owner=self.user
         )
-        self.task.assigned_users.set([self.user])
+        self.task.assigned_users.set([self.user, self.another_user])
+        self.factory = APIRequestFactory()
 
-    def test_task_serializaion(self):
-        serializer = TaskReadSerializer
+    def test_task_read_serializaion(self):
+        serializer = TaskReadSerializer(self.task)
+        data = serializer.data
+        self.assertEqual(data['name'], self.task.name)
+        self.assertEqual(data['description'], self.task.description)
+        self.assertEqual(data['deadline'], str(self.task.deadline))
+        self.assertEqual(data['comment'], self.task.comment)
+        self.assertEqual(data['state']['id'], self.task.state.id)
+        self.assertEqual(data['priority']['id'], self.task.priority.id)
+        self.assertEqual(len(data['assigned_users']), 2)
+        self.assertEqual(data['owner']['id'], self.task.owner.id)
+
+    
