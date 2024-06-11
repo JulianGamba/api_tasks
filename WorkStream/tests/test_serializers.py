@@ -1,12 +1,6 @@
 from rest_framework.test import APITestCase, APIRequestFactory
-from WorkStream.models.tasks import Task
-from WorkStream.models.state import State
-from WorkStream.models.priority import Priority
-from WorkStream.models.customUser import CustomUser
-from WorkStream.serializers.stateSerializers import StateSerializer
-from WorkStream.serializers.prioritySerializers import PrioritySerializer
-from WorkStream.serializers.customUserSerializers import CustomUserSerializer
-from WorkStream.serializers.taskSerializers import TaskReadSerializer, TaskWriteSerializer
+from WorkStream.models import Task, Priority, State, CustomUser
+from WorkStream.serializers import TaskReadSerializer, TaskWriteSerializer
 from datetime import datetime
 
 class TaskSerializerTest(APITestCase):
