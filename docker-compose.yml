@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: 1234
     networks:
-      - activity_1_network 
+      - activity_1_network
     ports:
       - "5432:5432"  # Asegúrate de que el puerto está mapeado correctamente
   web:
