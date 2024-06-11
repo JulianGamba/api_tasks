@@ -10,7 +10,6 @@ from WorkStream.serializers.prioritySerializers import PrioritySerializer
 from WorkStream.serializers.stateSerializers import StateSerializer
 
 
-
 class TaskReadSerializer(serializers.ModelSerializer):
     state = StateSerializer()
     priority = PrioritySerializer()
