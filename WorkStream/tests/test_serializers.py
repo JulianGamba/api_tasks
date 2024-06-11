@@ -32,7 +32,7 @@ class TaskSerializerTest(APITestCase):
         self.task.assigned_users.set([self.user, self.another_user])
         self.factory = APIRequestFactory()
 
-    def test_task_read_serializaion(self):
+    def test_task_read_serialization(self):
         serializer = TaskReadSerializer(self.task)
         data = serializer.data
         self.assertEqual(data['name'], self.task.name)
@@ -68,3 +68,24 @@ class TaskSerializerTest(APITestCase):
         serializer = TaskWriteSerializer(data=invalid_data, context={'request': request})
         self.assertFalse(serializer.is_valid())
         self.assertIn('deadline', serializer.errors)
+
+    def test_task_missing_name(self):
+        """Test serialization with missing name field."""
+        invalid_data = self.task_data.copy()
+        del invalid_data['name']
+        request = self.factory.post('/tasks/', invalid_data, format='json')
+        request.user = self.user
+        serializer = TaskWriteSerializer(data=invalid_data, context={'request': request})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('name', serializer.errors)
+
+    def test_task_partial_update(self):
+        """Test partial update serialization of a Task."""
+        partial_data = {'description': 'Nueva descripción'}
+        request = self.factory.patch('/tasks/', partial_data, format='json')
+        request.user = self.user
+        serializer = TaskWriteSerializer(self.task, data=partial_data, partial=True, context={'request': request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        task = serializer.save()
+        self.assertEqual(task.description, partial_data['description'])
+        self.assertEqual(task.name, self.task.name)  # Ensure other fields are unchanged
