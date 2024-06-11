@@ -65,3 +65,12 @@ class TaskSerializerTest(APITestCase):
         self.assertEqual(task.priority.id, self.task_data['priority'])
         self.assertEqual(list(task.assigned_users.all()), [self.user, self.another_user])
         self.assertEqual(task.owner, self.user)
+
+    def test_task_invalid_data(self):
+        invalid_data = self.task_data.copy()
+        invalid_data['deadline'] = 'invalid-date'
+        request = self.factory.post('/tasks/', invalid_data, format='json')
+        request.user = self.user
+        serializer = TaskWriteSerializer(data=invalid_data, context={'request': request})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('deadline', serializer.errors)
