@@ -2,7 +2,8 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
-from WorkStream.models import State, Priority, CustomUser
+from WorkStream.models import Task, State, Priority, CustomUser
+
 
 class ViewSetTests(TestCase):
 
