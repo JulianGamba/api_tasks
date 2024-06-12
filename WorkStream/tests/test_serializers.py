@@ -79,6 +79,15 @@ class TaskSerializerTest(APITestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn('name', serializer.errors)
 
+    def test_task_missing_comment(self):
+        """Test serialization with missing comment field."""
+        valid_data = self.task_data.copy()
+        del valid_data['comment']
+        request = self.factory.post('/tasks/', valid_data, format='json')
+        request.user = self.user
+        serializer = TaskWriteSerializer(data=valid_data, context={'request': request})
+        self.assertTrue(serializer.is_valid())
+
     def test_task_partial_update(self):
         """Test partial update serialization of a Task."""
         partial_data = {'description': 'Nueva descripción'}
