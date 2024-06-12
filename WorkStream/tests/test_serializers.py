@@ -3,6 +3,7 @@ from WorkStream.models import Task, Priority, State, CustomUser
 from WorkStream.serializers import TaskReadSerializer, TaskWriteSerializer, StateSerializer, PrioritySerializer, LoginSerializer, CustomUserSerializer
 from datetime import datetime
 
+
 class StateSerializerTest(APITestCase):
 
     def setUp(self):
@@ -41,6 +42,7 @@ class StateSerializerTest(APITestCase):
         state = serializer.save()
         self.assertEqual(state.name, partial_data['name'])
 
+
 class PrioritySerializerTest(APITestCase):
 
     def setUp(self):
@@ -78,6 +80,7 @@ class PrioritySerializerTest(APITestCase):
         self.assertTrue(serializer.is_valid(), serializer.errors)
         priority = serializer.save()
         self.assertEqual(priority.name, partial_data['name'])
+
 
 class TaskSerializerTest(APITestCase):
 
@@ -167,10 +170,82 @@ class TaskSerializerTest(APITestCase):
     def test_task_partial_update(self):
         """Test partial update serialization of a Task."""
         partial_data = {'description': 'Nueva descripción'}
-        request = self.factory.patch('/tasks/', partial_data, format='json')
+        request = self.factory.patch(f'/tasks/{self.task.id}/', partial_data, format='json')
         request.user = self.user
         serializer = TaskWriteSerializer(self.task, data=partial_data, partial=True, context={'request': request})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         task = serializer.save()
         self.assertEqual(task.description, partial_data['description'])
         self.assertEqual(task.name, self.task.name)  # Ensure other fields are unchanged
+
+
+class CustomUserSerializerTest(APITestCase):
+
+    def setUp(self):
+        self.user_data = {
+            "username": "user_test",
+            "password": "password",
+            "email": "user_test@example.com",
+            "full_name": "User Test",
+            "avatar": None,
+            "birth_date": "1990-01-01",
+            "identification": 1234567890
+        }
+        self.user = CustomUser.objects.create_user(
+            username="user_test",
+            password="password",
+            email="user_test@example.com",
+            full_name="User Test",
+            avatar=None,
+            birth_date="1990-01-01",
+            identification=1234567890
+        )
+        self.factory = APIRequestFactory()
+
+    def test_user_serialization(self):
+        serializer = CustomUserSerializer(self.user)
+        data = serializer.data
+        self.assertEqual(data['username'], self.user.username)
+        self.assertEqual(data['email'], self.user.email)
+        self.assertEqual(data['full_name'], self.user.full_name)
+        self.assertEqual(data['birth_date'], str(self.user.birth_date))
+        self.assertEqual(data['identification'], self.user.identification)
+
+    def test_user_deserialization(self):
+        CustomUser.objects.filter(username=self.user_data['username']).delete()  # Eliminar si existe
+        request = self.factory.post('/users/', self.user_data, format='json')
+        serializer = CustomUserSerializer(data=self.user_data, context={'request': request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        user = serializer.save()
+        self.assertEqual(user.username, self.user_data['username'])
+        self.assertTrue(user.check_password(self.user_data['password']))  # Verifica que la contraseña se estableció correctamente
+        self.assertEqual(user.email, self.user_data['email'])
+        self.assertEqual(user.full_name, self.user_data['full_name'])
+        self.assertEqual(user.birth_date, datetime.strptime(self.user_data['birth_date'], '%Y-%m-%d').date())
+        self.assertEqual(user.identification, self.user_data['identification'])
+
+    def test_user_invalid_data(self):
+        invalid_data = self.user_data.copy()
+        invalid_data['username'] = ''
+        request = self.factory.post('/users/', invalid_data, format='json')
+        serializer = CustomUserSerializer(data=invalid_data, context={'request': request})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('username', serializer.errors)
+
+    def test_user_partial_update(self):
+        self.user = CustomUser.objects.create_user(
+            username="user_test2",
+            password="password",
+            email="user_test2@example.com",
+            full_name="User Test 2",
+            avatar=None,
+            birth_date="1990-01-01",
+            identification=1234567890
+        )
+        partial_data = {'full_name': 'New Name'}
+        request = self.factory.patch(f'/users/{self.user.id}/', partial_data, format='json')
+        serializer = CustomUserSerializer(self.user, data=partial_data, partial=True, context={'request': request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        user = serializer.save()
+        self.assertEqual(user.full_name, partial_data['full_name'])
+        self.assertEqual(user.username, self.user.username)  # Ensure other fields are unchanged
