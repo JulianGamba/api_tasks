@@ -41,6 +41,44 @@ class StateSerializerTest(APITestCase):
         state = serializer.save()
         self.assertEqual(state.name, partial_data['name'])
 
+class PrioritySerializerTest(APITestCase):
+
+    def setUp(self):
+        self.priority_data = {
+            "name": "Alta"
+        }
+        self.priority = Priority.objects.create(
+            name = "Alta"
+        )
+        self.factory = APIRequestFactory()
+
+    def test_priority_serialization(self):
+        serializer = PrioritySerializer(self.priority)
+        data = serializer.data
+        self.assertEqual(self.priority.name, data['name'])
+
+    def test_priority_deserialization(self):
+        request = self.factory.post('/prioritys/', self.priority_data, format='json')
+        serializer = PrioritySerializer(data=self.priority_data, context={'request': request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        priority = serializer.save()
+        self.assertEqual(priority.name, self.priority_data['name'])
+
+    def test_priority_invalid_data(self):
+        invalid_data = {"name": ""}
+        request = self.factory.post('/prioritys/', invalid_data, format='json')
+        serializer = PrioritySerializer(data=invalid_data, context={'request': request})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('name', serializer.errors)
+
+    def test_priority_partial_update(self):
+        partial_data = {'name': 'Baja'}
+        request = self.factory.patch(f'/prioritys/{self.priority.id}', partial_data, format='json')
+        serializer = PrioritySerializer(self.priority, data=partial_data, partial=True, context={'request': request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        priority = serializer.save()
+        self.assertEqual(priority.name, partial_data['name'])
+
 class TaskSerializerTest(APITestCase):
 
     def setUp(self):
