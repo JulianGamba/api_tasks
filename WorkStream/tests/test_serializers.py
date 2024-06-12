@@ -1,7 +1,45 @@
 from rest_framework.test import APITestCase, APIRequestFactory
 from WorkStream.models import Task, Priority, State, CustomUser
-from WorkStream.serializers import TaskReadSerializer, TaskWriteSerializer
+from WorkStream.serializers import TaskReadSerializer, TaskWriteSerializer, StateSerializer, PrioritySerializer, LoginSerializer, CustomUserSerializer
 from datetime import datetime
+
+class StateSerializerTest(APITestCase):
+
+    def setUp(self):
+        self.state_data = {
+            "name": "Backlog"
+        }
+        self.state = State.objects.create(
+            name= "Backlog"
+        )
+        self.factory = APIRequestFactory()
+
+    def test_state_serialization(self):
+        serializer = StateSerializer(self.state)
+        data = serializer.data
+        self.assertEqual(data['name'], self.state.name)
+
+    def test_state_deserialization(self):
+        request = self.factory.post('/states/', self.state_data, format='json')
+        serializer = StateSerializer(data=self.state_data, context={'request': request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        state = serializer.save()
+        self.assertEqual(state.name, self.state_data['name'])
+
+    def test_state_invalid_data(self):
+        invalid_data = {"name": ""}
+        request = self.factory.post('/states/', invalid_data, format='json')
+        serializer = StateSerializer(data=invalid_data, context={'request': request})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('name', serializer.errors)
+
+    def test_state_partial_update(self):
+        partial_data = {'name': 'In pogress'}
+        request = self.factory.patch(f'/states/{self.state.id}', partial_data, format='json')
+        serializer = StateSerializer(self.state, data=partial_data, partial=True, context={'request': request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        state = serializer.save()
+        self.assertEqual(state.name, partial_data['name'])
 
 class TaskSerializerTest(APITestCase):
 
