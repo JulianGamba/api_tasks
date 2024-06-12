@@ -7,16 +7,22 @@ from .models.customUser import CustomUser
 from .models.state import State
 from .models.priority import Priority
 from .models.tasks import Task
+from .models. comment import Comment
+
 from .serializers.customUserSerializers import CustomUserSerializer
 from .serializers.loginSerializers import LoginSerializer
 from .serializers.taskSerializers import TaskReadSerializer, TaskWriteSerializer
 from .serializers.prioritySerializers import PrioritySerializer
 from .serializers.stateSerializers import StateSerializer
+from .serializers.commentSeralizers import CommentSerializer
+
 
 from .permissions import IsAuthenticatedOrReadOnly
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
+from rest_framework import generics, permissions
+
 
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -200,3 +206,17 @@ def task_by_assigned_users(request):
 
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
+
+
+class CommentListCreateAPIView(generics.ListCreateAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
