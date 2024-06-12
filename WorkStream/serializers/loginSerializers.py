@@ -4,22 +4,22 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
-
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        username = data.get('username')
-        password = data.get('password')
+        username = data.get('username', None)
+        password = data.get('password', None)
 
-        if username and password:
-            user = authenticate(username=username, password=password)
-            if user:
-                data['user'] = user
-            else:
-                raise serializers.ValidationError("Invalid username or password.")
+        if not username or not password:
+            raise serializers.ValidationError('Must include "username" and "password".')
+
+        user = authenticate(username=username, password=password)
+
+        if user:
+            return {
+                'user': user,
+            }
         else:
-            raise serializers.ValidationError("Must include 'username' and 'password'.")
-
-        return data
+            raise serializers.ValidationError('Incorrect username or password.')
