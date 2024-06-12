@@ -48,6 +48,8 @@ class RegisterAPIView(generics.CreateAPIView):
     
 
 class LoginAPIView(APIView):
+    permission_classes = [AllowAny]
+    serializer_class = LoginSerializer
     
     def post(self, request):
         
