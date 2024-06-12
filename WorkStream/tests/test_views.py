@@ -56,28 +56,38 @@ class ViewSetTests(TestCase):
         # Prueba para crear un usuario personalizado
         url = reverse('customuser-list')
         data = {
-            'username': 'nuevo usuario',
-            'password': 'password1234',
-            'email': 'test@gmail.com',
+            'username': 'nuevo ',
+            'password': '1234',
+            'email': 'testing@gmail.com',
             'full_name': 'usuario',
             'avatar': None,
             'birth_date': '2001-08-13',
             'identification': '1198774233'
         }
+          # Verificar que no existe un usuario con el mismo nombre de usuario
+        try:
+            CustomUser.objects.get(username=data['username'])
+            self.fail(f'User with username {data["username"]} already exists.')
+        except CustomUser.DoesNotExist:
+            pass
+        
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CustomUser.objects.count(), 2)  # Verifica que se haya creado un nuevo usuario
-
+        
+        
 class AuthViewsTest(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+        self.register_url = reverse('register')
+        self.login_url = reverse('login')
 
     def test_register(self):
         # Prueba para registrar un usuario
-        url = reverse('register')
+        
         data = {
-            'username': 'nuevo usuario',
+            'username': 'nuevo_usuario',
             'password': 'password1234',
             'email': 'test@gmail.com',
             'full_name': 'nuevo usuario registrado',
@@ -85,18 +95,28 @@ class AuthViewsTest(TestCase):
             'birth_date': '1990-01-01',
             'identification': '123456789'
         }
-        response = self.client.post(url, data, format='json')
+
+        # Verificar que no existe un usuario con el mismo nombre de usuario
+        self.assertFalse(CustomUser.objects.filter(username=data['username']).exists(), 
+                         f'User with username {data["username"]} already exists.')
+
+        response = self.client.post(self.register_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(CustomUser.objects.filter(username=data['username']).exists())
         self.assertEqual(CustomUser.objects.count(), 1)  # Verifica que se haya registrado un nuevo usuario
 
     def test_login(self):
         # Prueba para iniciar sesión
-        self.user = CustomUser.objects.create_user(username='test usuario', password='12345', email='test@gmail.com')
-        url = reverse('login')
+        self.user = CustomUser.objects.create_user(username='nuevo_usuario', password='password1234', email='test@gmail.com')
+        
         data = {
-            'username': 'test usuario',
-            'password': '12345'
+            'username': 'nuevo_usuario',
+            'password': 'password1234'
         }
-        response = self.client.post(url, data, format='json')
+        
+        response = self.client.post(self.login_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access', response.data)  # Verifica que el token de acceso esté en la respuesta
+
+    def tearDown(self):
+        CustomUser.objects.all().delete()
