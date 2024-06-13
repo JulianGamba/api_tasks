@@ -1,6 +1,6 @@
-from .customUserSerializers import CustomUserSerializer
-from .loginSerializers import LoginSerializer
-from .prioritySerializers import PrioritySerializer
-from .stateSerializers import StateSerializer
-from .taskSerializers import TaskReadSerializer, TaskWriteSerializer
-from .commentSeralizers import CommentSerializer
+from WorkStream.serializers.customUserSerializers import CustomUserSerializer
+from WorkStream.serializers.loginSerializers import LoginSerializer
+from WorkStream.serializers.prioritySerializers import PrioritySerializer
+from WorkStream.serializers.stateSerializers import StateSerializer
+from WorkStream.serializers.taskSerializers import TaskReadSerializer, TaskWriteSerializer
+from WorkStream.serializers.commentSerializers import CommentSerializer
