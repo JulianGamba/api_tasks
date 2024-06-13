@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from WorkStream.models.comment import Comment
+from WorkStream.models import Comment
 
 class CommentSerializer(serializers.ModelSerializer):
     user = serializers.ReadOnlyField(source='user.username')  # Solo lectura, se establece automáticamente

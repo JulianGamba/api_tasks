@@ -1,11 +1,12 @@
-
 from rest_framework import serializers
-from WorkStream.models.tasks import Task
-from WorkStream.models.customUser import CustomUser
-from WorkStream.models.state import State
-from WorkStream.models.priority import Priority
-from WorkStream.serializers import StateSerializer, PrioritySerializer, CustomUserSerializer, TaskWriteSerializer, TaskReadSerializer, LoginSerializer, CommentSerializer
-
+from WorkStream.models import Task
+from WorkStream.models import CustomUser
+from WorkStream.models import State
+from WorkStream.models import Priority
+from .stateSerializers import StateSerializer
+from .prioritySerializers import PrioritySerializer
+from .customUserSerializers import CustomUserSerializer
+from WorkStream.serializers.commentSerializers import CommentSerializer
 
 class TaskReadSerializer(serializers.ModelSerializer):
     state = StateSerializer()
@@ -13,7 +14,6 @@ class TaskReadSerializer(serializers.ModelSerializer):
     owner = CustomUserSerializer()
     assigned_users = CustomUserSerializer(many=True)
     comment = CommentSerializer()
-
     class Meta:
         model = Task
         fields = '__all__'
@@ -23,7 +23,6 @@ class TaskWriteSerializer(serializers.ModelSerializer):
     state = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
     priority = serializers.PrimaryKeyRelatedField(queryset=Priority.objects.all())
     assigned_users = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
-    comment = CommentSerializer()
 
     class Meta:
         model = Task
