@@ -1,7 +1,7 @@
 from django.db import models
 from core import settings
-from django.contrib.auth.models import User
-from . import Comment, State, Priority
+from WorkStream.models.state import State
+from WorkStream.models.priority import Priority
 
 
 class Task(models.Model):
@@ -11,7 +11,6 @@ class Task(models.Model):
     state = models.ForeignKey(State, on_delete=models.CASCADE, verbose_name='Estado de la tarea')
     priority = models.ForeignKey(Priority, on_delete=models.CASCADE, verbose_name='Prioridad de la tarea')
     deadline = models.DateField(verbose_name='Fecha de la tarea')
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, verbose_name='Comentarios de la tarea', blank=True, null=True)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tasks_owned', verbose_name='Dueño tarea')
     assigned_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='tasks_assigned', verbose_name='usuario asignado ')
 
