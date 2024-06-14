@@ -1,28 +1,14 @@
-from rest_framework import viewsets, generics, status
+from rest_framework import viewsets, generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.views import View
-from .models.customUser import CustomUser
-from .models.state import State
-from .models.priority import Priority
-from .models.tasks import Task
-from .models. comment import Comment
-
-from .serializers.customUserSerializers import CustomUserSerializer
-from .serializers.loginSerializers import LoginSerializer
-from .serializers.taskSerializers import TaskReadSerializer, TaskWriteSerializer
-from .serializers.prioritySerializers import PrioritySerializer
-from .serializers.stateSerializers import StateSerializer
-from .serializers.commentSeralizers import CommentSerializer
-
+from .models import Task, State, Priority, CustomUser, Comment
+from .serializers import StateSerializer, PrioritySerializer, CustomUserSerializer, TaskWriteSerializer, TaskReadSerializer, LoginSerializer, CommentSerializer
 
 from .permissions import IsAuthenticatedOrReadOnly
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
-from rest_framework import generics, permissions
-
 
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -57,6 +43,8 @@ class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
     
+    permission_classes = [AllowAny]
+
     def post(self, request):
         
         serializer = LoginSerializer(data=request.data)
@@ -79,7 +67,7 @@ def task_list_create(request):
         serializer = TaskReadSerializer(tasks, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
-        serializer = TaskWriteSerializer(data=request.data)
+        serializer = TaskWriteSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

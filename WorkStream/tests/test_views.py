@@ -2,7 +2,8 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
-from WorkStream.models import Task, State, Priority, CustomUser
+from rest_framework.test import APITestCase
+from WorkStream.models import Task, State, Priority, CustomUser, Comment
 
 
 class ViewSetTests(TestCase):
@@ -76,6 +77,53 @@ class ViewSetTests(TestCase):
         self.assertEqual(CustomUser.objects.count(), 2)  # Verifica que se haya creado un nuevo usuario
         
         
+class CommentAPITestCase(APITestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username='testuser', password='testpassword')
+        self.client.login(username='testuser', password='testpassword')
+        self.comment = Comment.objects.create(content="Test comment", user=self.user)
+        self.comment_url = reverse('comment-detail', kwargs={'pk': self.comment.pk})
+        self.comments_url = reverse('comment-list')
+
+    def test_create_comment(self):
+        data = {'content': 'New test comment'}
+        response = self.client.post(self.comments_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Comment.objects.count(), 2)
+        self.assertEqual(Comment.objects.latest('id').content, 'New test comment')
+
+    def test_list_comments(self):
+        response = self.client.get(self.comments_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['content'], self.comment.content)
+
+    def test_retrieve_comment(self):
+        response = self.client.get(self.comment_url, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['content'], self.comment.content)
+
+    def test_update_comment(self):
+        data = {'content': 'Updated test comment'}
+        response = self.client.put(self.comment_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.content, 'Updated test comment')
+
+    def test_partial_update_comment(self):
+        data = {'content': 'Partially updated test comment'}
+        response = self.client.patch(self.comment_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.comment.refresh_from_db()
+        self.assertEqual(self.comment.content, 'Partially updated test comment')
+
+    def test_delete_comment(self):
+        response = self.client.delete(self.comment_url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Comment.objects.count(), 0)
+        
 class AuthViewsTest(TestCase):
 
     def setUp(self):
@@ -120,3 +168,4 @@ class AuthViewsTest(TestCase):
 
     def tearDown(self):
         CustomUser.objects.all().delete()
+        
