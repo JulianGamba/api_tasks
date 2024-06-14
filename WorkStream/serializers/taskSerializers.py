@@ -13,7 +13,7 @@ class TaskReadSerializer(serializers.ModelSerializer):
     priority = PrioritySerializer()
     owner = CustomUserSerializer()
     assigned_users = CustomUserSerializer(many=True)
-    comment = CommentSerializer()
+    comment = CommentSerializer(many=True, read_only=True)
     class Meta:
         model = Task
         fields = '__all__'
@@ -23,6 +23,7 @@ class TaskWriteSerializer(serializers.ModelSerializer):
     state = serializers.PrimaryKeyRelatedField(queryset=State.objects.all())
     priority = serializers.PrimaryKeyRelatedField(queryset=Priority.objects.all())
     assigned_users = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
+    comment = CommentSerializer(many=True, required=False )
 
     class Meta:
         model = Task
