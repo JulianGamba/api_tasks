@@ -202,7 +202,7 @@ class CommentListCreateAPIView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(User=self.request.user)
 
 class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
