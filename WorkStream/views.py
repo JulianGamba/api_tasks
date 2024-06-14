@@ -73,7 +73,7 @@ def task_list_create(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def tasks_detail(request, pk, format=None):
     
@@ -86,8 +86,8 @@ def tasks_detail(request, pk, format=None):
         serializer = TaskReadSerializer(task)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
-        serializer = TaskWriteSerializer(task, data=request.data)
+    elif request.method in ['PUT', 'PATCH']:
+        serializer = TaskWriteSerializer(task, data=request.data, partial=(request.method == 'PATCH'), context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -208,17 +208,3 @@ class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticatedOrReadOnly])
-def add_comment_to_task(request, task_id):
-    try:
-        task = Task.objects.get(pk=task_id)
-    except Task.DoesNotExist:
-        return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
-
-    serializer = CommentSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save(task=task, user=request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

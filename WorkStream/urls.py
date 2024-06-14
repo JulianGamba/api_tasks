@@ -19,5 +19,4 @@ urlpatterns = [
     path('tasks/by_assigned_users/', task_by_assigned_users, name='task-by-assigned-users-list'),
     path('comments/', CommentListCreateAPIView.as_view(), name='comment-list'),
     path('comments/<int:pk>/', CommentDetailAPIView.as_view(), name='comment-detail'),
-    path('tasks/<int:task_id>/add_comment/', add_comment_to_task, name='add_comment_to_task'),
 ]
