@@ -44,8 +44,21 @@ class TaskWriteSerializer(serializers.ModelSerializer):
         return task
 
     def update(self, instance, validated_data):
-        comments_data = validated_data.pop('comments', [])
+        comments_data = validated_data.pop('comments', None)
+        assigned_users_data = validated_data.pop('assigned_users', None)
+
         instance = super().update(instance, validated_data)
-        for comment_data in comments_data:
-            Comment.objects.create(task=instance, user=self.context['request'].user, **comment_data)
+        
+        if comments_data:
+            for comment_data in comments_data:
+                Comment.objects.create(task=instance, user=self.context['request'].user, **comment_data)
+        # for comment_data in comments_data:
+        #     Comment.objects.create(task=instance, user=self.context['request'].user, **comment_data)
+
+        # Update assigned users without losing existing ones
+        if assigned_users_data:
+            # Add new assigned users to the existing ones
+            for user in assigned_users_data:
+                instance.assigned_users.add(user)
+        
         return instance
