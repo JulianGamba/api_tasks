@@ -5,7 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Task, State, Priority, CustomUser, Comment
 from .serializers import StateSerializer, PrioritySerializer, CustomUserSerializer, TaskWriteSerializer, TaskReadSerializer, LoginSerializer, CommentSerializer
 
-from .permissions import IsAuthenticatedOrReadOnly
+from .permissions import IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
@@ -18,11 +18,35 @@ class StateViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
+    def create(self, request, *args, **kwargs):
+        # Si los datos enviados son una lista, muchos=True se aplica automáticamente
+        serializer = self.get_serializer(data=request.data, many=isinstance(request.data, list))
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
 class PriorityViewSet(viewsets.ModelViewSet):
     
     queryset = Priority.objects.all()
     serializer_class = PrioritySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    
+    def create(self, request, *args, **kwargs):
+        # Si los datos enviados son una lista, muchos=True se aplica automáticamente
+        serializer = self.get_serializer(data=request.data, many=isinstance(request.data, list))
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
 
 
 class CustomUserViewSet(viewsets.ModelViewSet):
@@ -30,6 +54,17 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset =  CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def create(self, request, *args, **kwargs):
+        # Si los datos enviados son una lista, muchos=True se aplica automáticamente
+        serializer = self.get_serializer(data=request.data, many=isinstance(request.data, list))
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 class RegisterAPIView(generics.CreateAPIView):
@@ -199,7 +234,7 @@ def task_by_assigned_users(request):
 class CommentListCreateAPIView(generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save(User=self.request.user)
