@@ -52,8 +52,6 @@ class TaskWriteSerializer(serializers.ModelSerializer):
         if comments_data:
             for comment_data in comments_data:
                 Comment.objects.create(task=instance, user=self.context['request'].user, **comment_data)
-        # for comment_data in comments_data:
-        #     Comment.objects.create(task=instance, user=self.context['request'].user, **comment_data)
 
         # Update assigned users without losing existing ones
         if assigned_users_data:
