@@ -1,12 +1,12 @@
-from rest_framework import viewsets, generics, status, permissions
+from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import Task, State, Priority, CustomUser, Comment
 from .serializers import StateSerializer, PrioritySerializer, CustomUserSerializer, TaskWriteSerializer, TaskReadSerializer, LoginSerializer, CommentSerializer
 
-from .permissions import IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly
-from rest_framework.permissions import AllowAny
+from .permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
 
@@ -194,26 +194,28 @@ def task_by_deadline(request):
         
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
-
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_owner(request):
-    owner_param = request.GET.get('owner')
-    if owner_param:
-        try:
-            owner = CustomUser.objects.get(pk=owner_param)
-        except (CustomUser.DoesNotExist, ValueError):
+    if request.method == 'GET':
+        owner_param = request.GET.get('owner')
+        
+        if owner_param:
             try:
-                owner = CustomUser.objects.get(username=owner_param)
-            except CustomUser.DoesNotExist:
-                return Response({'error': 'No hay tarea con ese dueño'}, status=status.HTTP_404_NOT_FOUND)
-        tasks = Task.objects.filter(owner=owner)
-    else:
-        tasks = Task.objects.all()
+                owner = CustomUser.objects.get(pk=owner_param)
+            except (CustomUser.DoesNotExist, ValueError):
+                try:
+                    owner = CustomUser.objects.get(username=owner_param)
+                except CustomUser.DoesNotExist:
+                    return Response({'error': 'No hay tarea con ese dueño'}, status=status.HTTP_404_NOT_FOUND)
+            
+            tasks = Task.objects.filter(owner=owner)
+        else:
+            tasks = Task.objects.all()
+        
+        serializer = TaskReadSerializer(tasks, many=True)
+        return Response(serializer.data)
     
-    serializer = TaskReadSerializer(tasks, many=True)
-    return Response(serializer.data)
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_assigned_users(request):
@@ -230,16 +232,34 @@ def task_by_assigned_users(request):
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
 
-
-class CommentListCreateAPIView(generics.ListCreateAPIView):
+class CommentCreateAPIView(generics.CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        task_id = request.data.get('task')
+        user_id = request.data.get('user')
+        
+        if not task_id or not user_id:
+            return Response(
+                {"detail": "Task ID and User ID are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Aquí se asocia el comentario con la tarea y el usuario
+        data = request.data.copy()
+        data['user'] = user_id
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
-        serializer.save(User=self.request.user)
+        serializer.save()
 
-class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
