@@ -1,7 +1,7 @@
 from django.db import models
 from core import settings
-from WorkStream.models.state import State
-from WorkStream.models.priority import Priority
+from django.contrib.auth.models import User
+from . import  State, Priority
 
 
 class Task(models.Model):
