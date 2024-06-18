@@ -28,6 +28,12 @@ class TaskWriteSerializer(serializers.ModelSerializer):
         
         model = Task
         exclude = ['owner']
+        
+    def create(self, validated_data):
+        user = self.context['request'].user
+        validated_data['owner'] = user
+        return super().create(validated_data)
+
 
    
         
