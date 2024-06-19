@@ -5,7 +5,6 @@ from WorkStream.models.priority import Priority
 
 
 class Task(models.Model):
-    
     name = models.CharField(max_length=40, verbose_name='Nombre de la tarea')
     description = models.CharField(max_length=255, verbose_name='Descripción de la tarea')
     state = models.ForeignKey(State, on_delete=models.CASCADE, verbose_name='Estado de la tarea')
