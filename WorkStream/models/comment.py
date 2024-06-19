@@ -6,7 +6,7 @@ User = get_user_model()
 
 
 class Comment(models.Model):
-    task = models.ForeignKey('Task', related_name='comments', on_delete=models.CASCADE)
+    task_id = models.ForeignKey('Task', related_name='comments', on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     assigned_users = models.ManyToManyField(User, related_name='assigned_comments')
     text = models.TextField()
