@@ -86,7 +86,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'activity_1',
-        'HOST': 'db', # se cambio de db a localhost para correr el proyecto de manera local
+        'HOST': 'localhost', # se cambio de db a localhost para correr el proyecto de manera local
         'USER': 'root',
         'PASSWORD': '1234',
         'PORT': '5432',
