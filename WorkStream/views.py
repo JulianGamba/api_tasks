@@ -10,6 +10,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+
 
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -234,31 +236,48 @@ def task_by_assigned_users(request):
     return Response(serializer.data)
 
 class CommentListAPIView(generics.ListAPIView):
+    
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     
 User = get_user_model()
 class CommentCreateAPIView(generics.CreateAPIView):
+    
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        task_id = self.request.data.get('task')
-        task = Task.objects.get(id=task_id)
+        try:
+            task_id = self.request.data.get('task')
+            task = get_object_or_404(Task, id=task_id)
+        except Task.DoesNotExist:
+            return Response({"error": "Task does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
         assigned_users = self.request.data.get('assigned_users', [])
-        comment = serializer.save(user=self.request.user, task=task)
-        comment.assigned_users.set(assigned_users)
-        return comment
+
+        try:
+            comment = serializer.save(user=self.request.user, task=task)
+            comment.assigned_users.set(assigned_users)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        comment = self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        try:
+            comment = self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
