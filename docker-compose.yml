@@ -10,10 +10,12 @@ services:
       - activity_1_network 
     ports:
       - "5432:5432"  # Asegúrate de que el puerto está mapeado correctamente
+
   web:
     image: activity_1_app:1
     container_name: activity_1_app
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: |
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
