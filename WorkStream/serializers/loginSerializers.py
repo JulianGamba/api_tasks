@@ -5,6 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
 class LoginSerializer(serializers.Serializer):
+    
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 

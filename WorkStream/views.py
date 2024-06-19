@@ -9,6 +9,7 @@ from .permissions import IsAuthenticatedOrReadOnly
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -232,34 +233,40 @@ def task_by_assigned_users(request):
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
 
+class CommentListAPIView(generics.ListAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    
+User = get_user_model()
 class CommentCreateAPIView(generics.CreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        task_id = request.data.get('task')
-        user_id = request.data.get('user')
-        
-        if not task_id or not user_id:
-            return Response(
-                {"detail": "Task ID and User ID are required."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Aquí se asocia el comentario con la tarea y el usuario
-        data = request.data.copy()
-        data['user'] = user_id
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
     def perform_create(self, serializer):
-        serializer.save()
+        task_id = self.request.data.get('task')
+        task = Task.objects.get(id=task_id)
+        assigned_users = self.request.data.get('assigned_users', [])
+        comment = serializer.save(user=self.request.user, task=task)
+        comment.assigned_users.set(assigned_users)
+        return comment
 
-class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        comment = self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = 'comment_id'
+
+
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
