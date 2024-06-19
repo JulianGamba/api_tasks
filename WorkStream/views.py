@@ -239,8 +239,10 @@ class CommentListAPIView(generics.ListAPIView):
     
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
     
 User = get_user_model()
+
 class CommentCreateAPIView(generics.CreateAPIView):
     
     queryset = Comment.objects.all()
