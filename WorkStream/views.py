@@ -101,7 +101,33 @@ class PriorityViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
-
+@method_decorator(name='list', decorator=swagger_auto_schema(
+    operation_description="Obtiene una lista de todos los usuarios.",
+    responses={200: CustomUserSerializer(many=True)}
+))
+@method_decorator(name='retrieve', decorator=swagger_auto_schema(
+    operation_description="Obtiene un usuario específico por ID.",
+    responses={200: CustomUserSerializer, 404: 'Not Found'}
+))
+@method_decorator(name='create', decorator=swagger_auto_schema(
+    operation_description="Crea un nuevo usuario",
+    request_body=CustomUserSerializer(many=True),
+    responses={201: CustomUserSerializer(many=True)},
+))
+@method_decorator(name='update', decorator=swagger_auto_schema(
+    operation_description="Actualiza un usuario específico por ID.",
+    request_body=CustomUserSerializer,
+    responses={200: CustomUserSerializer, 400: 'Bad Request', 404: 'Not Found'}
+))
+@method_decorator(name='partial_update', decorator=swagger_auto_schema(
+    operation_description="Actualiza parcialmente un usuario específico por ID.",
+    request_body=CustomUserSerializer,
+    responses={200: CustomUserSerializer, 400: 'Bad Request', 404: 'Not Found'}
+))
+@method_decorator(name='destroy', decorator=swagger_auto_schema(
+    operation_description="Elimina un usuario específico por ID.",
+    responses={204: 'No Content', 404: 'Not Found'}
+))
 class CustomUserViewSet(viewsets.ModelViewSet):
     
     queryset =  CustomUser.objects.all()
@@ -114,12 +140,25 @@ class RegisterAPIView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Registra los nuevos usuarios.",
+        request_body=CustomUserSerializer,
+        responses={201: CustomUserSerializer},
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
     
 
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
     
+    @swagger_auto_schema(
+        operation_description="Inician sesión los usuarios.",
+        request_body=LoginSerializer,
+        responses={200: 'OK', 400: 'Bad Request'},
+    )   
     def post(self, request):
         
         serializer = LoginSerializer(data=request.data)
@@ -359,42 +398,62 @@ def task_by_assigned_users(request):
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
 
-@method_decorator(name='list', decorator=swagger_auto_schema(
-    operation_description="Obtiene una lista de todos los comentarios.",
-    responses={200: CommentSerializer(many=True)}
-))
-# @method_decorator(name='create', decorator=swagger_auto_schema(
-#     operation_description="Crea un nuevo comentario.",
-#     request_body=CommentSerializer,
-#     responses={201: CommentSerializer},
-# ))
+
 class CommentListCreateAPIView(generics.ListCreateAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+    @swagger_auto_schema(
+        operation_description="Obtiene una lista de todos los comentarios.",
+        responses={200: CommentSerializer(many=True)}
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Crea un nuevo comentario.",
+        request_body=CommentSerializer,
+        responses={201: CommentSerializer},
+    )
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+    
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-@method_decorator(name='retrieve', decorator=swagger_auto_schema(
-    operation_description="Obtiene un comentario específico por ID.",
-    responses={200: CommentSerializer, 404: 'Not Found'}
-))
-@method_decorator(name='update', decorator=swagger_auto_schema(
-    operation_description="Actualiza un comentario específico por ID.",
-    request_body=CommentSerializer,
-    responses={200: CommentSerializer, 400: 'Bad Request', 404: 'Not Found'}
-))
-@method_decorator(name='partial_update', decorator=swagger_auto_schema(
-    operation_description="Actualiza parcialmente un comentario específico por ID.",
-    request_body=CommentSerializer,
-    responses={200: CommentSerializer, 400: 'Bad Request', 404: 'Not Found'}
-))
-@method_decorator(name='destroy', decorator=swagger_auto_schema(
-    operation_description="Elimina un comentario específico por ID.",
-    responses={204: 'No Content', 404: 'Not Found'}
-))
+
 class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsCommentOwner]
+
+    @swagger_auto_schema(
+        operation_description="Obtiene un comentario específico por ID.",
+        responses={200: CommentSerializer, 404: 'Not Found'}
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Actualiza un comentario específico por ID.",
+        request_body=CommentSerializer,
+        responses={200: CommentSerializer, 400: 'Bad Request', 404: 'Not Found'}
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Actualiza parcialmente un comentario específico por ID.",
+        request_body=CommentSerializer,
+        responses={200: CommentSerializer, 400: 'Bad Request', 404: 'Not Found'}
+    )
+    def patch(self, request, *args, **kwargs):
+        return super().patch(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Elimina un comentario específico por ID.",
+        responses={204: 'No Content', 404: 'Not Found'}
+    )
+    def delete(self, request, *args, **kwargs):
+        return super().delete(request, *args, **kwargs)
