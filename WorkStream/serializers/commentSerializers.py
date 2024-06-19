@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from WorkStream.models import Comment, Task, CustomUser
+from WorkStream.models import Comment, Task
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
