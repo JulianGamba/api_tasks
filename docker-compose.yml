@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
-      - activity_1_network 
+      - activity_1_network:
     ports:
       - "5432:5432"
     volumes:
@@ -27,7 +27,7 @@ services:
     depends_on:
       - db
     networks:
-      - activity_1_network
+      - activity_1_network:
 
 networks:
   activity_1_network:
