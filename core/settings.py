@@ -85,10 +85,10 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'activity_1',
-        'HOST': 'localhost', # se cambio de db a localhost para correr el proyecto de manera local
-        'USER': 'root',
-        'PASSWORD': '1234',
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': 'db',  # Nombre del servicio de Docker Compose
         'PORT': '5432',
     }
 }
