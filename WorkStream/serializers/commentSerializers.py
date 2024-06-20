@@ -1,13 +1,13 @@
 from rest_framework import serializers
-from WorkStream.models import Comment, Task
-from django.contrib.auth import get_user_model
+from WorkStream.models import Comment, Task, customUser
+user = customUser.objects.all()
 
-User = get_user_model()
 
 class CommentSerializer(serializers.ModelSerializer):
     task = serializers.PrimaryKeyRelatedField(queryset=Task.objects.all())
-    user = serializers.PrimaryKeyRelatedField(read_only=True)
-    assigned_users = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
+    user = serializers.PrimaryKeyRelatedField(queryset=customUser.objects.all(), default=serializers.CurrentUserDefault())
+    assigned_users = serializers.PrimaryKeyRelatedField(many=True, queryset=customUser.objects.all(), required=False)
+
 
     class Meta:
         model = Comment
@@ -22,6 +22,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         assigned_users = validated_data.pop('assigned_users', [])
-        comment = super().update(instance, validated_data)
-        comment.assigned_users.set(assigned_users)
-        return comment
+        instance = super().update(instance, validated_data)
+        instance.assigned_users.set(assigned_users)
+        return instance
