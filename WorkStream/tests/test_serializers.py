@@ -10,8 +10,14 @@ class StateSerializerTest(APITestCase):
         self.state_data = {
             "name": "Backlog"
         }
+        self.state_data2 = {
+            "name": "Done"
+        }
         self.state = State.objects.create(
             name= "Backlog"
+        )
+        self.state2 = State.objects.create(
+            name="Doing"
         )
         self.factory = APIRequestFactory()
 
@@ -21,11 +27,11 @@ class StateSerializerTest(APITestCase):
         self.assertEqual(data['name'], self.state.name)
 
     def test_state_deserialization(self):
-        request = self.factory.post('/states/', self.state_data, format='json')
-        serializer = StateSerializer(data=self.state_data, context={'request': request})
+        request = self.factory.post('/states/', self.state_data2, format='json')
+        serializer = StateSerializer(data=self.state_data2, context={'request': request})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         state = serializer.save()
-        self.assertEqual(state.name, self.state_data['name'])
+        self.assertEqual(state.name, self.state_data2['name'])
 
     def test_state_invalid_data(self):
         invalid_data = {"name": ""}
@@ -49,6 +55,9 @@ class PrioritySerializerTest(APITestCase):
         self.priority_data = {
             "name": "Alta"
         }
+        self.priority_data2 = {
+            "name": "Media"
+        }
         self.priority = Priority.objects.create(
             name = "Alta"
         )
@@ -60,11 +69,11 @@ class PrioritySerializerTest(APITestCase):
         self.assertEqual(self.priority.name, data['name'])
 
     def test_priority_deserialization(self):
-        request = self.factory.post('/prioritys/', self.priority_data, format='json')
-        serializer = PrioritySerializer(data=self.priority_data, context={'request': request})
+        request = self.factory.post('/prioritys/', self.priority_data2, format='json')
+        serializer = PrioritySerializer(data=self.priority_data2, context={'request': request})
         self.assertTrue(serializer.is_valid(), serializer.errors)
         priority = serializer.save()
-        self.assertEqual(priority.name, self.priority_data['name'])
+        self.assertEqual(priority.name, self.priority_data2['name'])
 
     def test_priority_invalid_data(self):
         invalid_data = {"name": ""}
@@ -158,8 +167,8 @@ class TaskSerializerTest(APITestCase):
     def setUp(self):
         self.state = State.objects.create(name='Doing')
         self.priority = Priority.objects.create(name='Alta')
-        self.user = CustomUser.objects.create_user(username='user_test', password='password')
-        self.another_user = CustomUser.objects.create_user(username='anotheruser', password='password')
+        self.user = CustomUser.objects.create_user(username='user_test', email='user_test@gmail.com', password='password')
+        self.another_user = CustomUser.objects.create_user(username='anotheruser', email='anotheruser@gmail.com',password='password')
 
         # Primero crea la tarea
         self.task = Task.objects.create(
