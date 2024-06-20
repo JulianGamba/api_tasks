@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from WorkStream.models import Task
-from WorkStream.models import CustomUser
 
 CustomUser = get_user_model()
 
