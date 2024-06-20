@@ -1,9 +1,13 @@
+
+import pytest
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from WorkStream.models import Task, State, Priority, CustomUser, Comment
+from django.contrib.auth import get_user_model
+
 
 
 class ViewSetTests(TestCase):
@@ -76,53 +80,95 @@ class ViewSetTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(CustomUser.objects.count(), 2)  # Verifica que se haya creado un nuevo usuario
         
+User = get_user_model()
+
+@pytest.mark.django_db
+class TestCommentViews:
+
+    @pytest.fixture
+    def user(self):
+        return User.objects.create_user(
+            username='testuser',
+            email='testuser@example.com',
+            password='testpass123'
+        )
+
+    @pytest.fixture
+    def task(self, user):
+        return Task.objects.create(
+            title='Test Task',
+            description='Task description',
+            user=user
+        )
+
+    @pytest.fixture
+    def client(self, user):
+        client = APIClient()
+        client.force_authenticate(user=user)
+        return client
+
+    def test_list_comments(self, client, task):
+        Comment.objects.bulk_create([
+            Comment(text='Comment 1', task=task, user=task.user),
+            Comment(text='Comment 2', task=task, user=task.user),
+            Comment(text='Comment 3', task=task, user=task.user),
+        ])
+        url = reverse('comment-list')
+        response = client.get(url)
         
-class CommentAPITestCase(APITestCase):
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 3
 
-    def setUp(self):
-        self.client = APIClient()
-        self.user = CustomUser.objects.create_user(username='testuser', password='testpassword')
-        self.client.login(username='testuser', password='testpassword')
-        self.comment = Comment.objects.create(content="Test comment", user=self.user)
-        self.comment_url = reverse('comment-detail', kwargs={'pk': self.comment.pk})
-        self.comments_url = reverse('comment-list')
+    def test_create_comment(self, client, user, task):
+        url = reverse('comment-create')
+        data = {
+            'text': 'This is a test comment',
+            'task': task.id,
+            'assigned_users': [user.id]
+        }
+        response = client.post(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data['text'] == 'This is a test comment'
+        assert response.data['task'] == task.id
 
-    def test_create_comment(self):
-        data = {'content': 'New test comment'}
-        response = self.client.post(self.comments_url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Comment.objects.count(), 2)
-        self.assertEqual(Comment.objects.latest('id').content, 'New test comment')
+    def test_create_comment_invalid_task(self, client):
+        url = reverse('comment-create')
+        data = {
+            'text': 'This is a test comment',
+            'task': 999  # Asume que esta tarea no existe
+        }
+        response = client.post(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert 'error' in response.data
 
-    def test_list_comments(self):
-        response = self.client.get(self.comments_url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['content'], self.comment.content)
+    def test_retrieve_comment(self, client, task):
+        comment = Comment.objects.create(text='Test comment', task=task, user=task.user)
+        url = reverse('comment-detail', kwargs={'comment_id': comment.id})
+        response = client.get(url)
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['text'] == comment.text
 
-    def test_retrieve_comment(self):
-        response = self.client.get(self.comment_url, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['content'], self.comment.content)
+    def test_update_comment(self, client, task):
+        comment = Comment.objects.create(text='Test comment', task=task, user=task.user)
+        url = reverse('comment-detail', kwargs={'comment_id': comment.id})
+        data = {
+            'text': 'Updated comment text'
+        }
+        response = client.put(url, data, format='json')
+        
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['text'] == 'Updated comment text'
 
-    def test_update_comment(self):
-        data = {'content': 'Updated test comment'}
-        response = self.client.put(self.comment_url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.comment.refresh_from_db()
-        self.assertEqual(self.comment.content, 'Updated test comment')
-
-    def test_partial_update_comment(self):
-        data = {'content': 'Partially updated test comment'}
-        response = self.client.patch(self.comment_url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.comment.refresh_from_db()
-        self.assertEqual(self.comment.content, 'Partially updated test comment')
-
-    def test_delete_comment(self):
-        response = self.client.delete(self.comment_url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Comment.objects.count(), 0)
+    def test_delete_comment(self, client, task):
+        comment = Comment.objects.create(text='Test comment', task=task, user=task.user)
+        url = reverse('comment-detail', kwargs={'comment_id': comment.id})
+        response = client.delete(url)
+        
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert Comment.objects.filter(id=comment.id).count() == 0
         
 class AuthViewsTest(TestCase):
 
