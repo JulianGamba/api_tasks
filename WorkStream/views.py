@@ -189,7 +189,7 @@ def task_list_create(request):
     if request.method == 'GET':
         tasks = Task.objects.all()
         serializer = TaskReadSerializer(tasks, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'POST':
         is_many = isinstance(request.data, list)
         serializer = TaskWriteSerializer(data=request.data, many=is_many, context={'request': request})
