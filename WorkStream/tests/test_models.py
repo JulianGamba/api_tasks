@@ -1,7 +1,8 @@
-from django.test import TestCase
-from WorkStream.models import State, Priority, CustomUser, Task
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django.test import TestCase
+
+from WorkStream.models import CustomUser, Priority, State, Task
 
 
 class StateModelTest(TestCase):
@@ -13,7 +14,7 @@ class StateModelTest(TestCase):
     def test_str_representation(self):
         state = State.objects.create(name="To do")
         self.assertEqual(str(state), "To do")
-    
+
     def test_name_max_length(self):
         state = State(name="A" * 31)
         with self.assertRaises(ValidationError):
@@ -21,7 +22,9 @@ class StateModelTest(TestCase):
 
     def test_unique_name(self):
         State.objects.create(name="Completed")
-        with self.assertRaises(IntegrityError):  # Captura IntegrityError en lugar de Exception
+        with self.assertRaises(
+            IntegrityError
+        ):  # Captura IntegrityError en lugar de Exception
             State.objects.create(name="Completed")
 
     def test_update_state(self):
@@ -46,7 +49,7 @@ class PriorityModelTest(TestCase):
     def test_str_representation(self):
         priority = Priority.objects.create(name="Baja")
         self.assertEqual(str(priority), "Baja")
-    
+
     def test_name_max_length(self):
         priority = Priority(name="A" * 31)
         with self.assertRaises(ValidationError):
@@ -54,7 +57,9 @@ class PriorityModelTest(TestCase):
 
     def test_unique_name(self):
         Priority.objects.create(name="Alta")
-        with self.assertRaises(IntegrityError):  # Captura IntegrityError en lugar de Exception
+        with self.assertRaises(
+            IntegrityError
+        ):  # Captura IntegrityError en lugar de Exception
             Priority.objects.create(name="Alta")
 
     def test_update_priority(self):
@@ -104,9 +109,13 @@ class CustomUserModelTest(TestCase):
             user.full_clean()
 
     def test_unique_email(self):
-        CustomUser.objects.create(username="usuario6", email="test@example.com", password="password")
+        CustomUser.objects.create(
+            username="usuario6", email="test@example.com", password="password"
+        )
         with self.assertRaises(IntegrityError):
-            CustomUser.objects.create(username="usuario7", email="test@example.com", password="password")
+            CustomUser.objects.create(
+                username="usuario7", email="test@example.com", password="password"
+            )
 
 
 class TaskModelTest(TestCase):
@@ -122,7 +131,7 @@ class TaskModelTest(TestCase):
             deadline="2024-06-08",
             state=self.state,
             priority=self.priority,
-            owner=self.user
+            owner=self.user,
         )
         task.assigned_users.set([self.user])
         self.assertEqual(task.name, "Test tarea 1")
@@ -140,7 +149,7 @@ class TaskModelTest(TestCase):
             deadline="2024-06-09",
             state=self.state,
             priority=self.priority,
-            owner=self.user
+            owner=self.user,
         )
         self.assertEqual(str(task), f"tarea: Test tarea 2 en estado {self.state}")
 
@@ -151,7 +160,7 @@ class TaskModelTest(TestCase):
             deadline="2024-06-08",
             state=self.state,
             priority=self.priority,
-            owner=self.user
+            owner=self.user,
         )
         with self.assertRaises(ValidationError):
             task.full_clean()
@@ -163,7 +172,7 @@ class TaskModelTest(TestCase):
             deadline="2024-06-08",
             state=self.state,
             priority=self.priority,
-            owner=self.user
+            owner=self.user,
         )
         with self.assertRaises(ValidationError):
             task.full_clean()
@@ -175,7 +184,7 @@ class TaskModelTest(TestCase):
             deadline="2024-06-08",
             state=self.state,
             priority=self.priority,
-            owner=self.user
+            owner=self.user,
         )
         task_id = task.id
         task.delete()
@@ -189,7 +198,7 @@ class TaskModelTest(TestCase):
             deadline="2024-06-08",
             state=self.state,
             priority=self.priority,
-            owner=self.user
+            owner=self.user,
         )
         task.name = "Tarea actualizada"
         task.save()
@@ -202,7 +211,7 @@ class TaskModelTest(TestCase):
             deadline="2024-06-08",
             state=self.state,
             priority=self.priority,
-            owner=self.user
+            owner=self.user,
         )
         task2 = Task.objects.create(
             name="Task 2",
@@ -210,7 +219,7 @@ class TaskModelTest(TestCase):
             deadline="2024-06-07",
             state=self.state,
             priority=self.priority,
-            owner=self.user
+            owner=self.user,
         )
         tasks = Task.objects.all()
         self.assertEqual(tasks[0], task2)

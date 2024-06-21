@@ -34,7 +34,5 @@ class TaskWriteSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context["request"].user
-        # comments_data = validated_data.pop("comments", [])
-        # assigned_users_data = validated_data.pop("assigned_users", [])
         validated_data["owner"] = user
         return super().create(validated_data)
