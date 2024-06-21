@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from WorkStream.models.priority import Priority
+from WorkStream.models import Priority
 
 class PrioritySerializer(serializers.ModelSerializer):
     class Meta:

@@ -5,6 +5,7 @@ from .models.tasks import Task
 from .models.priority import Priority
 from .models.comment import Comment
 
+
 admin.site.register(Task)
 admin.site.register(Priority)
 admin.site.register(State)

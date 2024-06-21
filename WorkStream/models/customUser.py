@@ -9,5 +9,6 @@ class CustomUser(AbstractUser):
     birth_date = models.DateField(null=True, blank=True, verbose_name='Fecha de nacimiento')
     identification = models.PositiveIntegerField(null=True, blank=True, verbose_name='Número de identificación')
 
+
     def __str__(self):
         return self.username

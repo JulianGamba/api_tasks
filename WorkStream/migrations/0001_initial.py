@@ -86,6 +86,7 @@ class Migration(migrations.Migration):
                 ('text', models.TextField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('task', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='WorkStream.task')),
+                ('assigned_users', models.ManyToManyField(related_name='assigned_comments', to=settings.AUTH_USER_MODEL)),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),
