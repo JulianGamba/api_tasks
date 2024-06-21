@@ -1,19 +1,25 @@
+version: '3.8'
+
 services:
   db:
     image: postgres:latest
     container_name: postgres_activity_1
     environment:
-      POSTGRES_DB: activity_1
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
-      - activity_1_network 
+      - activity_1_network
     ports:
-      - "5432:5432"  # Asegúrate de que el puerto está mapeado correctamente
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   web:
-    image: activity_1_app:1
+    build: .
     container_name: activity_1_app
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: |
+      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
@@ -26,3 +32,6 @@ services:
 networks:
   activity_1_network:
     driver: bridge
+
+volumes:
+  postgres_data:

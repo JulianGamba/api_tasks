@@ -1,10 +1,11 @@
 from rest_framework import serializers
-from WorkStream.models.customUser import CustomUser 
+from django.contrib.auth import get_user_model
 
+CustomUser = get_user_model()
 
 class CustomUserSerializer(serializers.ModelSerializer):
+   
     class Meta:
-        
         model = CustomUser
         fields = ('id', 'username', 'password', 'email', 'full_name', 'avatar', 'birth_date', 'identification')
         extra_kwargs = {'password': {'write_only': True}}

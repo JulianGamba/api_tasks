@@ -1,14 +1,21 @@
-from rest_framework import viewsets, generics, status, permissions
+from rest_framework import viewsets, generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import Task, State, Priority, CustomUser, Comment
-from .serializers import StateSerializer, PrioritySerializer, CustomUserSerializer, TaskWriteSerializer, TaskReadSerializer, LoginSerializer, CommentSerializer
+from WorkStream.models import Task, State, Priority, CustomUser, Comment
+from WorkStream.serializers import (StateSerializer, PrioritySerializer, CustomUserSerializer,
+TaskWriteSerializer, TaskReadSerializer, LoginSerializer, CommentSerializer)
 
-from .permissions import IsAuthenticatedOrReadOnly, IsCommentOwner, IsOwnerOrAssignedUser
-from rest_framework.permissions import AllowAny
+from .permissions import IsAuthenticatedOrReadOnly, IsOwnerOrAssignedUser
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
+from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import ValidationError
+from django.shortcuts import Http404
+
+
 
 
 class StateViewSet(viewsets.ModelViewSet):
@@ -16,6 +23,7 @@ class StateViewSet(viewsets.ModelViewSet):
     queryset = State.objects.all()
     serializer_class = StateSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
 
     def create(self, request, *args, **kwargs):
         # Si los datos enviados son una lista, muchos=True se aplica automáticamente
@@ -28,12 +36,24 @@ class StateViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
-
 class PriorityViewSet(viewsets.ModelViewSet):
     
     queryset = Priority.objects.all()
     serializer_class = PrioritySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    
+    def create(self, request, *args, **kwargs):
+        # Si los datos enviados son una lista, muchos=True se aplica automáticamente
+        serializer = self.get_serializer(data=request.data, many=isinstance(request.data, list))
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
 
     def create(self, request, *args, **kwargs):
         # Si los datos enviados son una lista, muchos=True se aplica automáticamente
@@ -52,6 +72,17 @@ class CustomUserViewSet(viewsets.ModelViewSet):
     queryset =  CustomUser.objects.all()
     serializer_class = CustomUserSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def create(self, request, *args, **kwargs):
+        # Si los datos enviados son una lista, muchos=True se aplica automáticamente
+        serializer = self.get_serializer(data=request.data, many=isinstance(request.data, list))
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
 
 
 class RegisterAPIView(generics.CreateAPIView):
@@ -184,26 +215,28 @@ def task_by_deadline(request):
         
     serializer = TaskReadSerializer(tasks, many=True)
     return Response(serializer.data)
-
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_owner(request):
-    owner_param = request.GET.get('owner')
-    if owner_param:
-        try:
-            owner = CustomUser.objects.get(pk=owner_param)
-        except (CustomUser.DoesNotExist, ValueError):
+    if request.method == 'GET':
+        owner_param = request.GET.get('owner')
+        
+        if owner_param:
             try:
-                owner = CustomUser.objects.get(username=owner_param)
-            except CustomUser.DoesNotExist:
-                return Response({'error': 'No hay tarea con ese dueño'}, status=status.HTTP_404_NOT_FOUND)
-        tasks = Task.objects.filter(owner=owner)
-    else:
-        tasks = Task.objects.all()
+                owner = CustomUser.objects.get(pk=owner_param)
+            except (CustomUser.DoesNotExist, ValueError):
+                try:
+                    owner = CustomUser.objects.get(username=owner_param)
+                except CustomUser.DoesNotExist:
+                    return Response({'error': 'No hay tarea con ese dueño'}, status=status.HTTP_404_NOT_FOUND)
+            
+            tasks = Task.objects.filter(owner=owner)
+        else:
+            tasks = Task.objects.all()
+        
+        serializer = TaskReadSerializer(tasks, many=True)
+        return Response(serializer.data)
     
-    serializer = TaskReadSerializer(tasks, many=True)
-    return Response(serializer.data)
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def task_by_assigned_users(request):
@@ -221,15 +254,88 @@ def task_by_assigned_users(request):
     return Response(serializer.data)
 
 
-class CommentListCreateAPIView(generics.ListCreateAPIView):
+User = get_user_model()
+
+class CommentListAPIView(generics.ListAPIView):
+    
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticated]
+    
+
+class CommentCreateAPIView(generics.CreateAPIView):
+    
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        
+        task_id = self.request.data.get('task')
+        
+        # Verificar si el task_id está presente en los datos
+        if not task_id:
+            raise ValidationError({"error": "Task ID is required"})
 
-class CommentDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+        try:
+            task = get_object_or_404(Task, id=task_id)
+        except Http404:
+            raise ValidationError({"error": "Task does not exist"})
+        except Exception as e:
+            raise ValidationError({"error": str(e)})
+
+        assigned_users = self.request.data.get('assigned_users', [])
+
+        try:
+            comment = serializer.save(user=self.request.user, task=task)
+            comment.assigned_users.set(assigned_users)
+        except Exception as e:
+            raise ValidationError({"error": str(e)})
+
+        return comment
+    
+    
+    def create(self, request, *args, **kwargs):
+        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            comment = self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except ValidationError as ve:
+            return Response(ve.detail, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsCommentOwner]
+    permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = 'comment_id'
+
+
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # Verifica si el usuario es el creador del comentario
+        if instance.user != request.user:
+            return Response({'error': 'No tienes permiso para eliminar este comentario.'},
+                            status=status.HTTP_403_FORBIDDEN)
+        
+        # Lógica personalizada antes de la eliminación
+        self.perform_destroy(instance)
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def perform_destroy(self, instance):
+        
+        instance.delete()
