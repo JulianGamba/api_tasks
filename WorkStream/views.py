@@ -6,7 +6,7 @@ from WorkStream.models import Task, State, Priority, CustomUser, Comment
 from WorkStream.serializers import (StateSerializer, PrioritySerializer, CustomUserSerializer,
 TaskWriteSerializer, TaskReadSerializer, LoginSerializer, CommentSerializer)
 
-from .permissions import IsAuthenticatedOrReadOnly
+from .permissions import IsAuthenticatedOrReadOnly, IsOwnerOrAssignedUser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 from django.db.models import Q
@@ -55,6 +55,17 @@ class PriorityViewSet(viewsets.ModelViewSet):
         serializer.save()
 
 
+    def create(self, request, *args, **kwargs):
+        # Si los datos enviados son una lista, muchos=True se aplica automáticamente
+        serializer = self.get_serializer(data=request.data, many=isinstance(request.data, list))
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
 
 class CustomUserViewSet(viewsets.ModelViewSet):
     
@@ -85,8 +96,6 @@ class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     serializer_class = LoginSerializer
     
-    permission_classes = [AllowAny]
-
     def post(self, request):
         
         serializer = LoginSerializer(data=request.data)
@@ -109,27 +118,31 @@ def task_list_create(request):
         serializer = TaskReadSerializer(tasks, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
-        serializer = TaskWriteSerializer(data=request.data, context={'request': request})
+        is_many = isinstance(request.data, list)
+        serializer = TaskWriteSerializer(data=request.data, many=is_many, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticatedOrReadOnly])
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticatedOrReadOnly, IsOwnerOrAssignedUser])
 def tasks_detail(request, pk, format=None):
-    
     try:
         task = Task.objects.get(pk=pk)
     except Task.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+    if not IsOwnerOrAssignedUser().has_object_permission(request, None, task):
+        return Response({"detail": "You do not have permission to perform this action bro."}, status=status.HTTP_403_FORBIDDEN)
+
+
     if request.method == 'GET':
         serializer = TaskReadSerializer(task)
         return Response(serializer.data)
 
-    elif request.method == 'PUT':
-        serializer = TaskWriteSerializer(task, data=request.data)
+    elif request.method in ['PUT', 'PATCH']:
+        serializer = TaskWriteSerializer(task, data=request.data, partial=(request.method == 'PATCH'), context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -138,6 +151,7 @@ def tasks_detail(request, pk, format=None):
     elif request.method == 'DELETE':
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
     
 @api_view(['GET'])
 @permission_classes([IsAuthenticatedOrReadOnly])
