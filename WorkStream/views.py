@@ -308,3 +308,20 @@ class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView)
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # Verifica si el usuario es el creador del comentario
+        if instance.user != request.user:
+            return Response({'error': 'No tienes permiso para eliminar este comentario.'},
+                            status=status.HTTP_403_FORBIDDEN)
+        
+        # Lógica personalizada antes de la eliminación
+        self.perform_destroy(instance)
+        
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def perform_destroy(self, instance):
+        
+        instance.delete()
