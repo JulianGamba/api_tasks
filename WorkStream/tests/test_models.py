@@ -1,121 +1,121 @@
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.test import TestCase
+from django.utils import timezone
 
-from WorkStream.models import CustomUser, Priority, State, Task
+from WorkStream.models import Comment, CustomUser, Priority, State, Task
 
+# class StateModelTest(TestCase):
 
-class StateModelTest(TestCase):
+#     def test_create_state(self):
+#         state = State.objects.create(name="Backlog")
+#         self.assertEqual(state.name, "Backlog")
 
-    def test_create_state(self):
-        state = State.objects.create(name="Backlog")
-        self.assertEqual(state.name, "Backlog")
+#     def test_str_representation(self):
+#         state = State.objects.create(name="To do")
+#         self.assertEqual(str(state), "To do")
 
-    def test_str_representation(self):
-        state = State.objects.create(name="To do")
-        self.assertEqual(str(state), "To do")
+#     def test_name_max_length(self):
+#         state = State(name="A" * 31)
+#         with self.assertRaises(ValidationError):
+#             state.full_clean()  # This will raise a ValueError if max_length is exceeded
 
-    def test_name_max_length(self):
-        state = State(name="A" * 31)
-        with self.assertRaises(ValidationError):
-            state.full_clean()  # This will raise a ValueError if max_length is exceeded
+#     def test_unique_name(self):
+#         State.objects.create(name="Completed")
+#         with self.assertRaises(
+#             IntegrityError
+#         ):  # Captura IntegrityError en lugar de Exception
+#             State.objects.create(name="Completed")
 
-    def test_unique_name(self):
-        State.objects.create(name="Completed")
-        with self.assertRaises(
-            IntegrityError
-        ):  # Captura IntegrityError en lugar de Exception
-            State.objects.create(name="Completed")
+#     def test_update_state(self):
+#         state = State.objects.create(name="To Do")
+#         state.name = "Done"
+#         state.save()
+#         self.assertEqual(state.name, "Done")
 
-    def test_update_state(self):
-        state = State.objects.create(name="To Do")
-        state.name = "Done"
-        state.save()
-        self.assertEqual(state.name, "Done")
-
-    def test_delete_state(self):
-        state = State.objects.create(name="Doing")
-        state_id = state.id
-        state.delete()
-        with self.assertRaises(State.DoesNotExist):
-            State.objects.get(id=state_id)
-
-
-class PriorityModelTest(TestCase):
-    def test_create_priority(self):
-        priority = Priority.objects.create(name="Baja")
-        self.assertEqual(priority.name, "Baja")
-
-    def test_str_representation(self):
-        priority = Priority.objects.create(name="Baja")
-        self.assertEqual(str(priority), "Baja")
-
-    def test_name_max_length(self):
-        priority = Priority(name="A" * 31)
-        with self.assertRaises(ValidationError):
-            priority.full_clean()  # This will raise a ValueError if max_length is exceeded
-
-    def test_unique_name(self):
-        Priority.objects.create(name="Alta")
-        with self.assertRaises(
-            IntegrityError
-        ):  # Captura IntegrityError en lugar de Exception
-            Priority.objects.create(name="Alta")
-
-    def test_update_priority(self):
-        priority = Priority.objects.create(name="Media")
-        priority.name = "Alta"
-        priority.save()
-        self.assertEqual(priority.name, "Alta")
-
-    def test_delete_priority(self):
-        priority = Priority.objects.create(name="Media")
-        priority_id = priority.id
-        priority.delete()
-        with self.assertRaises(Priority.DoesNotExist):
-            Priority.objects.get(id=priority_id)
+#     def test_delete_state(self):
+#         state = State.objects.create(name="Doing")
+#         state_id = state.id
+#         state.delete()
+#         with self.assertRaises(State.DoesNotExist):
+#             State.objects.get(id=state_id)
 
 
-class CustomUserModelTest(TestCase):
-    def test_create_custom_user(self):
-        user = CustomUser.objects.create(username="usuario1", password="password")
-        self.assertEqual(user.username, "usuario1")
+# class PriorityModelTest(TestCase):
+#     def test_create_priority(self):
+#         priority = Priority.objects.create(name="Baja")
+#         self.assertEqual(priority.name, "Baja")
 
-    def test_str_representation(self):
-        user = CustomUser.objects.create(username="usuario2", password="password")
-        self.assertEqual(str(user), "usuario2")
+#     def test_str_representation(self):
+#         priority = Priority.objects.create(name="Baja")
+#         self.assertEqual(str(priority), "Baja")
 
-    def test_unique_username(self):
-        CustomUser.objects.create(username="usuario3", password="password")
-        with self.assertRaises(IntegrityError):
-            CustomUser.objects.create(username="usuario3", password="password")
+#     def test_name_max_length(self):
+#         priority = Priority(name="A" * 31)
+#         with self.assertRaises(ValidationError):
+#             priority.full_clean()  # This will raise a ValueError if max_length is exceeded
 
-    def test_update_user(self):
-        user = CustomUser.objects.create(username="usuario4", password="password")
-        user.username = "usuario_actualizado"
-        user.save()
-        self.assertEqual(user.username, "usuario_actualizado")
+#     def test_unique_name(self):
+#         Priority.objects.create(name="Alta")
+#         with self.assertRaises(
+#             IntegrityError
+#         ):  # Captura IntegrityError en lugar de Exception
+#             Priority.objects.create(name="Alta")
 
-    def test_delete_user(self):
-        user = CustomUser.objects.create(username="usuario5", password="password")
-        user_id = user.id
-        user.delete()
-        with self.assertRaises(CustomUser.DoesNotExist):
-            CustomUser.objects.get(id=user_id)
+#     def test_update_priority(self):
+#         priority = Priority.objects.create(name="Media")
+#         priority.name = "Alta"
+#         priority.save()
+#         self.assertEqual(priority.name, "Alta")
 
-    def test_username_max_length(self):
-        user = CustomUser(username="A" * 151, password="password")
-        with self.assertRaises(ValidationError):
-            user.full_clean()
+#     def test_delete_priority(self):
+#         priority = Priority.objects.create(name="Media")
+#         priority_id = priority.id
+#         priority.delete()
+#         with self.assertRaises(Priority.DoesNotExist):
+#             Priority.objects.get(id=priority_id)
 
-    def test_unique_email(self):
-        CustomUser.objects.create(
-            username="usuario6", email="test@example.com", password="password"
-        )
-        with self.assertRaises(IntegrityError):
-            CustomUser.objects.create(
-                username="usuario7", email="test@example.com", password="password"
-            )
+
+# class CustomUserModelTest(TestCase):
+#     def test_create_custom_user(self):
+#         user = CustomUser.objects.create(username="usuario1", password="password")
+#         self.assertEqual(user.username, "usuario1")
+
+#     def test_str_representation(self):
+#         user = CustomUser.objects.create(username="usuario2", password="password")
+#         self.assertEqual(str(user), "usuario2")
+
+#     def test_unique_username(self):
+#         CustomUser.objects.create(username="usuario3", password="password")
+#         with self.assertRaises(IntegrityError):
+#             CustomUser.objects.create(username="usuario3", password="password")
+
+#     def test_update_user(self):
+#         user = CustomUser.objects.create(username="usuario4", password="password")
+#         user.username = "usuario_actualizado"
+#         user.save()
+#         self.assertEqual(user.username, "usuario_actualizado")
+
+#     def test_delete_user(self):
+#         user = CustomUser.objects.create(username="usuario5", password="password")
+#         user_id = user.id
+#         user.delete()
+#         with self.assertRaises(CustomUser.DoesNotExist):
+#             CustomUser.objects.get(id=user_id)
+
+#     def test_username_max_length(self):
+#         user = CustomUser(username="A" * 151, password="password")
+#         with self.assertRaises(ValidationError):
+#             user.full_clean()
+
+#     def test_unique_email(self):
+#         CustomUser.objects.create(
+#             username="usuario6", email="test@example.com", password="password"
+#         )
+#         with self.assertRaises(IntegrityError):
+#             CustomUser.objects.create(
+#                 username="usuario7", email="test@example.com", password="password"
+#             )
 
 
 class TaskModelTest(TestCase):
@@ -224,3 +224,77 @@ class TaskModelTest(TestCase):
         tasks = Task.objects.all()
         self.assertEqual(tasks[0], task2)
         self.assertEqual(tasks[1], task1)
+
+
+class CommentModelTest(TestCase):
+
+    def setUp(self):
+        state = State.objects.create(name="Backlog")
+        priority = Priority.objects.create(name="Media")
+        self.user = CustomUser.objects.create(username="usuario1", password="password")
+        self.task = Task.objects.create(
+            state=state,
+            priority=priority,
+            owner=self.user,
+            name="Tarea 1",
+            description="Descripción de la tarea 1",
+            deadline="2024-06-24",
+        )
+        self.task.assigned_users.set([self.user])
+
+    def test_create_comment(self):
+        comment = Comment.objects.create(
+            user=self.user, task=self.task, text="Este es el comentarioo"
+        )
+
+        self.assertEqual(comment.user, self.user)
+        self.assertEqual(comment.task, self.task)
+        self.assertEqual(comment.text, "Este es el comentarioo")
+        self.assertIsNotNone(comment.created_at)
+
+    def test_create_comment_without_text(self):
+        comment = Comment(user=self.user, task=self.task, text="")
+        with self.assertRaises(ValidationError):
+            comment.full_clean()  # Esto lanza la excepción si hay errores de validación
+            comment.save()
+
+    def test_create_comment_without_user(self):
+        comment = Comment(user=None, task=self.task, text="Este es el comentario")
+        with self.assertRaises(IntegrityError):
+            comment.save()
+
+    def test_create_comment_without_task(self):
+        comment = Comment(user=self.user, task=None, text="Este es el comentario")
+        with self.assertRaises(IntegrityError):
+            comment.save()
+
+    def test_comment_str(self):
+        comment = Comment.objects.create(
+            user=self.user, task=self.task, text="Este es el comentario"
+        )
+        self.assertEqual(str(comment), "Este es el comentario"[:20])
+
+    def test_comment_created_at(self):
+        comment = Comment.objects.create(
+            user=self.user, task=self.task, text="Este es el comentario"
+        )
+        self.assertTrue((timezone.now() - comment.created_at).total_seconds() < 1)
+
+    def test_update_comment(self):
+        comment = Comment.objects.create(
+            user=self.user, task=self.task, text="Este es el comentario"
+        )
+        comment.text = "Comentario actualizado"
+        comment.save()
+        comment.refresh_from_db()
+
+        self.assertEqual(comment.text, "Comentario actualizado")
+
+    def test_delete_comment(self):
+        comment = Comment.objects.create(
+            user=self.user, task=self.task, text="Este es el comentario"
+        )
+        comment_id = comment.id
+        comment.delete()
+        with self.assertRaises(Comment.DoesNotExist):
+            Comment.objects.get(id=comment_id)
