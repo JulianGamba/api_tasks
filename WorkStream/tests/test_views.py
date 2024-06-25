@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient
 
 from WorkStream.models import Comment, CustomUser, Priority, State, Task
 
@@ -93,93 +93,72 @@ class ViewSetTests(TestCase):
         )  # Verifica que se haya creado un nuevo usuario
 
 
-User = get_user_model()
+@pytest.mark.django_db
+def test_list_comments(api_client, comment):
+    url = reverse("comment-list")
+    response = api_client.get(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 1
+    assert response.data[0]["text"] == comment.text
 
 
 @pytest.mark.django_db
-class TestCommentViews:
+def test_create_comment(api_client, task):
+    url = reverse("comment-create")
+    data = {"text": "New test comment", "task": task.id}
+    response = api_client.post(url, data)
 
-    @pytest.fixture
-    def user(self):
-        return User.objects.create_user(
-            username="testuser", email="testuser@example.com", password="testpass123"
-        )
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data["text"] == "New test comment"
 
-    @pytest.fixture
-    def task(self, user):
-        return Task.objects.create(
-            title="Test Task", description="Task description", user=user
-        )
 
-    @pytest.fixture
-    def client(self, user):
-        client = APIClient()
-        client.force_authenticate(user=user)
-        return client
+@pytest.mark.django_db
+def test_retrieve_comment(api_client, comment):
+    url = reverse("comment-detail", args=[comment.id])
+    response = api_client.get(url)
 
-    def test_list_comments(self, client, task):
-        Comment.objects.bulk_create(
-            [
-                Comment(text="Comment 1", task=task, user=task.user),
-                Comment(text="Comment 2", task=task, user=task.user),
-                Comment(text="Comment 3", task=task, user=task.user),
-            ]
-        )
-        url = reverse("comment-list")
-        response = client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["text"] == comment.text
 
-        assert response.status_code == status.HTTP_200_OK
-        assert len(response.data) == 3
 
-    def test_create_comment(self, client, user, task):
-        url = reverse("comment-create")
-        data = {
-            "text": "This is a test comment",
-            "task": task.id,
-            "assigned_users": [user.id],
-        }
-        response = client.post(url, data, format="json")
+@pytest.mark.django_db
+def test_update_comment(api_client, comment, task):
+    url = reverse("comment-detail", args=[comment.id])
+    data = {"text": "Updated comment text", "task": task.id}
+    response = api_client.put(url, data)
 
-        assert response.status_code == status.HTTP_201_CREATED
-        assert response.data["text"] == "This is a test comment"
-        assert response.data["task"] == task.id
+    assert response.status_code == status.HTTP_200_OK, (
+        f"Expected status 200, but got {response.status_code}. "
+        f"Response data: {response.data}"
+    )
+    comment.refresh_from_db()
 
-    def test_create_comment_invalid_task(self, client):
-        url = reverse("comment-create")
-        data = {
-            "text": "This is a test comment",
-            "task": 999,  # Asume que esta tarea no existe
-        }
-        response = client.post(url, data, format="json")
+    assert (
+        comment.text == "Updated comment text"
+    ), f"Expected comment text 'Updated comment text', but got '{comment.text}'"
 
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert "error" in response.data
 
-    def test_retrieve_comment(self, client, task):
-        comment = Comment.objects.create(text="Test comment", task=task, user=task.user)
-        url = reverse("comment-detail", kwargs={"comment_id": comment.id})
-        response = client.get(url)
+@pytest.mark.django_db
+def test_delete_comment(api_client, comment):
+    url = reverse("comment-detail", args=[comment.id])
+    response = api_client.delete(url)
 
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["text"] == comment.text
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not Comment.objects.filter(id=comment.id).exists()
 
-    def test_update_comment(self, client, task):
-        comment = Comment.objects.create(text="Test comment", task=task, user=task.user)
-        url = reverse("comment-detail", kwargs={"comment_id": comment.id})
-        data = {"text": "Updated comment text"}
-        response = client.put(url, data, format="json")
 
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["text"] == "Updated comment text"
+@pytest.mark.django_db
+def test_delete_comment_unauthorized(api_client, user, another_user, task):
+    comment = Comment.objects.create(text="Test Comment", user=user, task=task)
+    url = reverse("comment-detail", args=[comment.id])
 
-    def test_delete_comment(self, client, task):
-        comment = Comment.objects.create(text="Test comment", task=task, user=task.user)
-        url = reverse("comment-detail", kwargs={"comment_id": comment.id})
-        response = client.delete(url)
+    # Forzar autenticación con otro usuario
+    api_client.force_authenticate(user=another_user)
+    response = api_client.delete(url)
 
-        assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert Comment.objects.filter(id=comment.id).count() == 0
-
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert Comment.objects.count() == 1
 
 class AuthViewsTest(TestCase):
 
