@@ -1,7 +1,9 @@
 from rest_framework import serializers
-from WorkStream.models.state import State
+
+from WorkStream.models import State
+
 
 class StateSerializer(serializers.ModelSerializer):
     class Meta:
         model = State
-        fields = '__all__'
+        fields = "__all__"
