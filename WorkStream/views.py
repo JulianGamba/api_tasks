@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import Http404, get_object_or_404
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
@@ -548,6 +549,10 @@ def task_by_assigned_users(request):
 User = get_user_model()
 
 
+@swagger_auto_schema(
+    operation_description="lista de cometarios",
+    responses={200: CommentSerializer(many=True)},
+)
 class CommentListAPIView(generics.ListAPIView):
 
     queryset = Comment.objects.all()
@@ -555,6 +560,11 @@ class CommentListAPIView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
 
+@swagger_auto_schema(
+    operation_description="crear comentario",
+    request_body=CommentSerializer,
+    responses={201: CommentSerializer()},
+)
 class CommentCreateAPIView(generics.CreateAPIView):
 
     queryset = Comment.objects.all()
@@ -600,6 +610,10 @@ class CommentCreateAPIView(generics.CreateAPIView):
             )
 
 
+@swagger_auto_schema(
+    operation_description="Detalle, actualizacion y eliminacion de comentarios",
+    responses={200: CommentSerializer(), 2004: "No Content", 403: "forbidden"},
+)
 class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Comment.objects.all()
