@@ -44,7 +44,7 @@ class StateSerializerTest(APITestCase):
         self.assertIn("name", serializer.errors)
 
     def test_state_partial_update(self):
-        partial_data = {"name": "Doing"}
+        partial_data = {"name": "Testing"}
         request = self.factory.patch(
             f"/states/{self.state.id}", partial_data, format="json"
         )

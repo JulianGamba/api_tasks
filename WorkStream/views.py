@@ -549,22 +549,23 @@ def task_by_assigned_users(request):
 User = get_user_model()
 
 
-@swagger_auto_schema(
-    operation_description="lista de cometarios",
-    responses={200: CommentSerializer(many=True)},
-)
 class CommentListAPIView(generics.ListAPIView):
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
+    
+    @swagger_auto_schema(
+        operation_description="Lista todos los comentarios",
+        responses={200: CommentSerializer(many=True)},
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
 
 
-@swagger_auto_schema(
-    operation_description="crear comentario",
-    request_body=CommentSerializer,
-    responses={201: CommentSerializer()},
-)
+@method_decorator(name='post', decorator=swagger_auto_schema(
+    operation_description="Creación de comentarios"
+))
 class CommentCreateAPIView(generics.CreateAPIView):
 
     queryset = Comment.objects.all()
@@ -610,10 +611,7 @@ class CommentCreateAPIView(generics.CreateAPIView):
             )
 
 
-@swagger_auto_schema(
-    operation_description="Detalle, actualizacion y eliminacion de comentarios",
-    responses={200: CommentSerializer(), 2004: "No Content", 403: "forbidden"},
-)
+
 class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Comment.objects.all()
@@ -621,6 +619,30 @@ class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView)
     permission_classes = [IsAuthenticated, IsCommentOwner]
     lookup_url_kwarg = "comment_id"
 
+    @swagger_auto_schema(
+        operation_description="Trae un comentario según el id",
+        responses={
+            200: CommentSerializer,
+            204: "No Content",
+            403: "Forbidden",
+            404: "Not Found",
+        },
+    )
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Actualiza un comentario",
+        request_body=CommentSerializer,
+        responses={200: CommentSerializer, 400: "Bad Request", 403: "Forbidden"},
+    )
+    def put(self, request, *args, **kwargs):
+        return super().put(request, *args, **kwargs)
+
+    @swagger_auto_schema(
+        operation_description="Elimina un comentario",
+        responses={204: "No Content", 403: "Forbidden", 404: "Not Found"},
+    )
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)

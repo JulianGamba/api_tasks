@@ -7,11 +7,11 @@ User = get_user_model()
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(username='testuser', password='testpass')
+    return User.objects.create_user(username='testuser', password='testpass', email='testuser@gmil.com')
 
 @pytest.fixture
 def another_user(db):
-    return User.objects.create_user(username='anotheruser', password='anotherpass')
+    return User.objects.create_user(username='anotheruser', password='anotherpass', email='anothertest@gmail.com')
 
 @pytest.fixture
 def priority(db):
