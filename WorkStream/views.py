@@ -24,7 +24,7 @@ from WorkStream.serializers import (
     TaskWriteSerializer,
 )
 
-from .permissions import IsAuthenticatedOrReadOnly, IsOwnerOrAssignedUser
+from .permissions import IsAuthenticatedOrReadOnly, IsOwnerOrAssignedUser, IsCommentOwner
 
 
 @method_decorator(
@@ -618,7 +618,7 @@ class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView)
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsCommentOwner]
     lookup_url_kwarg = "comment_id"
 
     def delete(self, request, *args, **kwargs):

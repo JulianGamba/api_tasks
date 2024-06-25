@@ -13,7 +13,6 @@ from WorkStream.serializers import (
     TaskWriteSerializer,
 )
 
-
 class StateSerializerTest(APITestCase):
 
     def setUp(self):
@@ -45,7 +44,7 @@ class StateSerializerTest(APITestCase):
         self.assertIn("name", serializer.errors)
 
     def test_state_partial_update(self):
-        partial_data = {"name": "In pogress"}
+        partial_data = {"name": "Doing"}
         request = self.factory.patch(
             f"/states/{self.state.id}", partial_data, format="json"
         )
@@ -173,7 +172,7 @@ class CustomUserSerializerTest(APITestCase):
             birth_date="1990-01-01",
             identification=1234567890,
         )
-        partial_data = {"full_name": "New Name"}
+        partial_data = {"full_name": "Nuevo nombre"}
         request = self.factory.patch(
             f"/users/{self.user.id}/", partial_data, format="json"
         )
@@ -211,18 +210,10 @@ class TaskSerializerTest(APITestCase):
         )
         self.task.assigned_users.set([self.user, self.another_user])
 
-        # Luego crea el comentario y asocialo a la tarea
-        self.comment = Comment.objects.create(
-            task=self.task,
-            user=self.user,
-            text="Este es un comentario asociado a la tarea",
-        )
-
         self.task_data = {
             "name": "Test tarea 1",
             "description": "Este es el test de la tarea 1",
             "deadline": "2024-06-08",
-            "comments": [{"text": "Comentario 1"}, {"text": "Comentario 2"}],
             "state": self.state.id,
             "priority": self.priority.id,
             "assigned_users": [self.user.id, self.another_user.id],
@@ -241,8 +232,6 @@ class TaskSerializerTest(APITestCase):
         self.assertEqual(data["priority"]["id"], self.task.priority.id)
         self.assertEqual(len(data["assigned_users"]), 2)
         self.assertEqual(data["owner"]["id"], self.task.owner.id)
-        self.assertEqual(len(data["comments"]), 1)
-        self.assertEqual(data["comments"][0]["text"], self.comment.text)
 
     def test_task_write_serialization(self):
         request = self.factory.post("/tasks/", self.task_data, format="json")
@@ -256,15 +245,12 @@ class TaskSerializerTest(APITestCase):
         self.assertEqual(task.description, self.task_data["description"])
         task_deadline = datetime.strptime(self.task_data["deadline"], "%Y-%m-%d").date()
         self.assertEqual(task.deadline, task_deadline)
-        # self.assertEqual(task.comment.id, self.comment.id)
         self.assertEqual(task.state.id, self.task_data["state"])
         self.assertEqual(task.priority.id, self.task_data["priority"])
         self.assertEqual(
             list(task.assigned_users.all()), [self.user, self.another_user]
         )
         self.assertEqual(task.owner, self.user)
-        self.assertEqual(task.comments.count(), 2)
-        self.assertEqual(task.comments.first().text, "Comentario 1")
 
     def test_task_invalid_data(self):
         invalid_data = self.task_data.copy()
@@ -289,17 +275,6 @@ class TaskSerializerTest(APITestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn("name", serializer.errors)
 
-    def test_task_missing_comment(self):
-        """Test serialization without comments field."""
-        valid_data = self.task_data.copy()
-        if "comments" in valid_data:
-            del valid_data["comments"]
-        request = self.factory.post("/tasks/", valid_data, format="json")
-        request.user = self.user
-        serializer = TaskWriteSerializer(data=valid_data, context={"request": request})
-        self.assertTrue(serializer.is_valid())
-        self.assertNotIn("comments", serializer.errors)
-
     def test_task_partial_update(self):
         """Test partial update serialization of a Task."""
         partial_data = {"description": "Nueva descripción"}
@@ -314,3 +289,65 @@ class TaskSerializerTest(APITestCase):
         task = serializer.save()
         self.assertEqual(task.description, partial_data["description"])
         self.assertEqual(task.name, self.task.name)  # Ensure other fields are unchanged
+
+
+class CommentSerializerTest(APITestCase):
+
+    def setUp(self):
+        state = State.objects.create(name="Backlog")
+        priority = Priority.objects.create(name="Alta")
+        self.user = CustomUser.objects.create(username="usuario1", password="password")
+        self.task = Task.objects.create(
+            state=state,
+            priority=priority,
+            name="Tarea 1",
+            description="Descripción de la tarea 1",
+            deadline="2024-06-08",
+            owner=self.user,
+        )
+        self.task.assigned_users.set([self.user])
+
+        self.comment = Comment.objects.create(
+            user=self.user, task=self.task, text="Este es el comentario de la tarea"
+        )
+
+        self.comment_data = {
+            "user": self.user.id,
+            "task": self.task.id,
+            "text": "Este es el comentario pasado en formato JSON",
+        }
+
+        self.factory = APIRequestFactory()
+
+    def test_comment_serialization(self):
+        serializer = CommentSerializer(self.comment)
+        data = serializer.data
+        self.assertEqual(data["user"], self.comment.user.id)
+        self.assertEqual(data["task"], self.comment.task.id)
+        self.assertEqual(data["text"], self.comment.text)
+
+    def test_comment_deserialization(self):
+        request = self.factory.post(
+            "/comments/create/", self.comment_data, dormat="josn"
+        )
+        serializer = CommentSerializer(
+            data=self.comment_data, context={"request": request}
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        comment = serializer.save()
+        self.assertEqual(comment.text, self.comment_data["text"])
+
+    def test_comment_invalid_data(self):
+        invalid_data = {"user": self.user.id, "task": self.task.id, "text": ""}
+        request = self.factory.post("/comments/create/", invalid_data, format="json")
+        serializer = CommentSerializer(data=invalid_data, context={"request": request})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("text", serializer.errors)
+
+    def test_priority_partial_update(self):
+        partial_data = {"text": "Comentario actualizado"}
+        request = self.factory.patch(f"/comments/{self.comment.id}", partial_data, format="json")
+        serializer = CommentSerializer(self.comment, data=partial_data, partial=True, context={"request":request})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        comment = serializer.save()
+        self.assertEqual(comment.text, partial_data["text"])
