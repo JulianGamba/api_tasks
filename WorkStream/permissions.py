@@ -1,5 +1,6 @@
 from rest_framework import permissions
 
+
 class IsAuthenticatedOrReadOnly(permissions.BasePermission):
     """
     Custom permission to only allow authenticated users to edit it.
@@ -16,19 +17,16 @@ class IsAuthenticatedOrReadOnly(permissions.BasePermission):
         # Write permissions are only allowed to authenticated users.
         return request.user and request.user.is_authenticated
 
+
 class IsOwnerOrAssignedUser(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         # Read permissions are allowed to any request
         if request.method in permissions.SAFE_METHODS:
             return True
-        
-        # Debugging statements
-        print(f"Request user: {request.user}")
-        print(f"Task owner: {obj.owner}")
-        print(f"Assigned users: {obj.assigned_users.all()}")
 
         # Write permissions are only allowed to the owner or assigned users
         return obj.owner == request.user or request.user in obj.assigned_users.all()
+
 
 class IsCommentOwner(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
