@@ -4,6 +4,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from WorkStream.views import *
+from WorkStream.views.task_views import *
 
 schema_view = get_schema_view(
     openapi.Info(

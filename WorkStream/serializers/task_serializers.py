@@ -2,9 +2,9 @@ from rest_framework import serializers
 
 from WorkStream.models import CustomUser, Priority, State, Task
 
-from .customUserSerializers import CustomUserSerializer
-from .prioritySerializers import PrioritySerializer
-from .stateSerializers import StateSerializer
+from .custom_user_serializers import CustomUserSerializer
+from .priority_serializers import PrioritySerializer
+from .state_serializers import StateSerializer
 
 
 class TaskReadSerializer(serializers.ModelSerializer):
