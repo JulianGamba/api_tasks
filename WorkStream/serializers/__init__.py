@@ -1,9 +1,9 @@
-from WorkStream.serializers.commentSerializers import CommentSerializer
-from WorkStream.serializers.customUserSerializers import CustomUserSerializer
-from WorkStream.serializers.loginSerializers import LoginSerializer
-from WorkStream.serializers.prioritySerializers import PrioritySerializer
-from WorkStream.serializers.stateSerializers import StateSerializer
-from WorkStream.serializers.taskSerializers import (
+from WorkStream.serializers.comment_serializers import CommentSerializer
+from WorkStream.serializers.custom_user_serializers import CustomUserSerializer
+from WorkStream.serializers.login_serializers import LoginSerializer
+from WorkStream.serializers.priority_serializers import PrioritySerializer
+from WorkStream.serializers.state_serializers import StateSerializer
+from WorkStream.serializers.task_serializers import (
     TaskReadSerializer,
     TaskWriteSerializer,
 )
