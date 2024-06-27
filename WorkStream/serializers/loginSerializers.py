@@ -11,11 +11,12 @@ class LoginSerializer(serializers.Serializer):
     def validate(self, data):
         username = data.get("username", None)
         password = data.get("password", None)
-
+        print(password, username)
         if not username or not password:
             raise serializers.ValidationError('Must include "username" and "password".')
 
         user = authenticate(username=username, password=password)
+        print(user)
 
         if user:
             return {
