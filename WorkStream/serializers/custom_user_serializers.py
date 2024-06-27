@@ -19,16 +19,15 @@ class CustomUserSerializer(serializers.ModelSerializer):
             "identification",
         )
         extra_kwargs = {"password": {"write_only": True}}
-
     def create(self, validated_data):
-
-        user = CustomUser.objects.create_user(
-            username=validated_data["username"],
-            password=validated_data["password"],
-            email=validated_data.get("email", ""),
-            full_name=validated_data.get("full_name", ""),
-            avatar=validated_data.get("avatar", None),
-            birth_date=validated_data.get("birth_date", None),
-            identification=validated_data.get("identification", None),
+        # Crear el usuario con todos los campos necesarios
+        user = CustomUser(
+            email=validated_data['email'],
+            full_name=validated_data.get('full_name', ''),
+            avatar=validated_data.get('avatar', None),
+            birth_date=validated_data.get('birth_date', None),
+            identification=validated_data.get('identification', None),
         )
+        user.set_password(validated_data['password'])
+        user.save()
         return user

@@ -160,6 +160,7 @@ def test_delete_comment_unauthorized(api_client, user, another_user, task):
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert Comment.objects.count() == 1
 
+
 class AuthViewsTest(TestCase):
 
     def setUp(self):
@@ -171,7 +172,6 @@ class AuthViewsTest(TestCase):
         # Prueba para registrar un usuario
 
         data = {
-            "username": "nuevo_usuario",
             "password": "password1234",
             "email": "test@gmail.com",
             "full_name": "nuevo usuario registrado",
@@ -180,32 +180,36 @@ class AuthViewsTest(TestCase):
             "identification": "123456789",
         }
 
-        # Verificar que no existe un usuario con el mismo nombre de usuario
+        # Verificar que no existe un usuario con el mismo correo electrónico
         self.assertFalse(
-            CustomUser.objects.filter(username=data["username"]).exists(),
-            f'User with username {data["username"]} already exists.',
+            CustomUser.objects.filter(email=data["email"]).exists(),
+            f'User with email {data["email"]} already exists.',
         )
 
         response = self.client.post(self.register_url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue(CustomUser.objects.filter(username=data["username"]).exists())
-        self.assertEqual(
-            CustomUser.objects.count(), 1
-        )  # Verifica que se haya registrado un nuevo usuario
+
+        # Verificar que se haya creado el usuario y que el username sea el correo electrónico sin la parte del dominio
+        self.assertTrue(CustomUser.objects.filter(email=data["email"]).exists())
+        user = CustomUser.objects.get(email=data["email"])
+        expected_username = data["email"].split("@")[0]
+        self.assertEqual(user.username, expected_username)
+
+        # Verificar que solo haya un usuario registrado
+        self.assertEqual(CustomUser.objects.count(), 1)
 
     def test_login(self):
         # Prueba para iniciar sesión
-        self.user = CustomUser.objects.create_user(
-            username="nuevo_usuario", password="password1234", email="test@gmail.com"
-        )
+        data_register = {"password": "password1234", "email": "test@gmail.com"}
+        self.client.post(self.register_url, data_register, format="json")
 
-        data = {"username": "nuevo_usuario", "password": "password1234"}
-
-        response = self.client.post(self.login_url, data, format="json")
+        data_login = {"password": "password1234", "username": "test"}
+        response = self.client.post(self.login_url, data_login, format="json")
+        print(response.json())
+        print(CustomUser.objects.first().email, CustomUser.objects.first().username)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn(
-            "access", response.data
-        )  # Verifica que el token de acceso esté en la respuesta
+        # Verifica que el token de acceso esté en la respuesta
+        self.assertIn("access", response.data)
 
     def tearDown(self):
         CustomUser.objects.all().delete()
