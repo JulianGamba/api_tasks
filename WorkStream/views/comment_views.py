@@ -94,6 +94,7 @@ class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView)
             404: "Not Found",
         },
     )
+    # realiza la operacion de recuperar comments
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
@@ -102,6 +103,7 @@ class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView)
         request_body=CommentSerializer,
         responses={200: CommentSerializer, 400: "Bad Request", 403: "Forbidden"},
     )
+    # realiza la operacion para actualizar un comment
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
@@ -109,6 +111,7 @@ class CommentRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView)
         operation_description="Elimina un comentario",
         responses={204: "No Content", 403: "Forbidden", 404: "Not Found"},
     )
+    # maneja la solicitud para eliminar un comment
     def delete(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
