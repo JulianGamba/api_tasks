@@ -16,8 +16,8 @@ class ViewSetTests(TestCase):
             username="usuario", password="1234", email="test@gmail.com"
         )
         self.client.force_authenticate(user=self.user)
-        self.state = State.objects.create(name="pendiente")
-        self.priority = Priority.objects.create(name="urgente")
+        self.state = State.objects.create(name="doing")
+        self.priority = Priority.objects.create(name="alta")
 
     def test_state_list(self):
         # Prueba para listar estados
