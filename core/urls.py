@@ -17,5 +17,35 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from django.conf import settings
+
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
+from django.urls import include, path, re_path
+
+
+
+schema_view_authenticated = get_schema_view(
+   openapi.Info(
+      title="api trello Docs",
+      default_version='v1',
+      description="Welcome to api trello documentation",
+      terms_of_service="https://www.ticsocial.com.co",
+      license=openapi.License(name="BSD License"),
+   ),
+   public=True,
+   permission_classes=(permissions.IsAuthenticated,),
+)
+
 
 urlpatterns = [path("admin/", admin.site.urls), path("", include("WorkStream.urls"))]
+
+# View for authenticated users if DEBUG is false for production
+if settings.DEBUG:
+  urlpatterns += [
+      re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view_authenticated.without_ui(
+        cache_timeout=0), name='schema-json-authenticated'),
+      path('swagger-2/', schema_view_authenticated.with_ui('swagger',
+           cache_timeout=0), name='schema-swagger-ui-authenticated'),
+  ]
