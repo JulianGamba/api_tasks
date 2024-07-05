@@ -18,8 +18,8 @@ services:
   web:
     build: .
     container_name: activity_1_app
-    command: |
-      sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      bash -c "python manage.py createsuperuser_if_none_exists && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/app
     ports:
