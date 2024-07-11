@@ -1,4 +1,3 @@
-# myapp/management/commands/createsuperuser_if_none_exists.py
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 
